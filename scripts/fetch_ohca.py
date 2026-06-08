@@ -15,7 +15,7 @@ import json, os, csv
 from pathlib import Path
 from urllib.parse import unquote
 import requests
-import _env  # noqa: .env -> os.environ 자동 로드
+import _env  # noqa: F401  (.env 자동 로드 side-effect)
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE.parent / "data"

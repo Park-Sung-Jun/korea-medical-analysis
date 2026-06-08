@@ -5,11 +5,11 @@ union 하지 않고 병원마다 15/30/45/60분 밴드를 따로 저장 → '병
 
 usage: $env:ORS_API_KEY=...; python scripts/fetch_hospital_isochrones.py
 """
-import json, os, sys, time
+import json, os, time
 from pathlib import Path
 import requests
 from shapely.geometry import shape, mapping
-import _env  # noqa: .env -> os.environ 자동 로드
+import _env  # noqa: F401  (.env 자동 로드 side-effect)
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent

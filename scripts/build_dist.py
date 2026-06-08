@@ -6,7 +6,7 @@ Netlify/Vercel 드롭용 정적 배포 번들 생성: isochrone_map/dist/
   - data/       = 프론트가 실제 fetch 하는 파일만 (geojson 3종 + report_stats.json)
 node_modules·pop 원천·CSV·scripts 등은 제외한다.
 """
-import json, shutil
+import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent

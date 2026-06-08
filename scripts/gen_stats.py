@@ -36,7 +36,6 @@ def main():
     F = [f["properties"] for f in biv["features"]]
     meta = biv.get("meta", {})
     hosp = json.loads((DATA / "hospitals.json").read_text(encoding="utf-8"))["hospitals"]
-    iso = json.loads((DATA / "isochrones.geojson").read_text(encoding="utf-8"))
 
     # 바이베리엇 분포
     from collections import Counter

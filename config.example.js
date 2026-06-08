@@ -5,7 +5,7 @@
 //      · 공개 배포: 서버리스 함수 api/iso.js + Vercel 환경변수 ORS_KEY 사용
 //      · 로컬 개발: config.local.js(.gitignore)에서 window.MAP_KEYS.ors 로 주입
 window.MAP_KEYS = {
-  vworld: "",   // 예: 56A8CCC0-....  (VWorld WMTS, 도메인 등록형)
+  vworld: "",   // 예: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX (VWorld WMTS UUID, 도메인 등록형)
   kakao: "",    // MapLibre에선 카카오 타일 미사용(좌표계/SDK 비호환)
   ors: ""       // 비워둘 것(로컬은 config.local.js, 공개는 서버리스)
 };

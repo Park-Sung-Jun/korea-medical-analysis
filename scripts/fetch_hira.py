@@ -33,7 +33,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 import requests
-import _env  # noqa: .env -> os.environ 자동 로드
+import _env  # noqa: F401  (.env 자동 로드 side-effect)
 
 # ── 경로 상수 ────────────────────────────────────────────────────────
 HERE = Path(__file__).resolve().parent
@@ -96,7 +96,7 @@ def resolve_api_key() -> str:
             importlib.reload(h3_config)
             key = str(getattr(h3_config, "DATAGOKR_API_KEY", "") or "").strip()
             if key:
-                print(f"[KEY] h3_tag/config.py 의 DATAGOKR_API_KEY 사용")
+                print("[KEY] h3_tag/config.py 의 DATAGOKR_API_KEY 사용")
                 return key
         except Exception as e:
             print(f"[KEY] h3_tag/config.py 로드 실패: {e}")

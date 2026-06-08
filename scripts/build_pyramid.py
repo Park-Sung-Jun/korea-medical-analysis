@@ -69,7 +69,7 @@ def main():
     (DATA / "sigungu_bivariate.geojson").write_text(json.dumps(biv, ensure_ascii=False), encoding="utf-8")
     print(f"저장: data/pop_pyramid.json  시군구 {matched}/{len(biv['features'])} "
           f"(이름폴백 {name_fb}, 미매칭 {miss})  크기 {(DATA/'pop_pyramid.json').stat().st_size//1024} KB")
-    print(f"sigungu_bivariate.geojson 에 elderly_pop/youth_pop/pop_total 병합 완료")
+    print("sigungu_bivariate.geojson 에 elderly_pop/youth_pop/pop_total 병합 완료")
     # 지수 vs 절대수 대비 예시
     feats = [f["properties"] for f in biv["features"] if f["properties"].get("elderly_pop") is not None]
     hi_idx_low_cnt = sorted([p for p in feats if p.get("aging_index")],
