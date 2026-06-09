@@ -309,7 +309,15 @@ function clearCoverage(){selHosp=null;
 
 /* ---------- 인터랙션 ---------- */
 const pop=new maplibregl.Popup({closeButton:false,closeOnClick:false,offset:10});
+// 피라미드 패널: 시군구에서 벗어나면 지연 후 닫되, 패널(링크 클릭용) 위에 있으면 취소
+let pyrHideTimer=null;
+const hidePyramid=()=>{document.getElementById('pyramid').style.display='none';};
+const schedulePyrHide=()=>{clearTimeout(pyrHideTimer);pyrHideTimer=setTimeout(hidePyramid,180);};
+const cancelPyrHide=()=>{clearTimeout(pyrHideTimer);pyrHideTimer=null;};
 function wireInteractions(){
+  const pyrPanel=document.getElementById('pyramid');
+  pyrPanel.addEventListener('mouseenter',cancelPyrHide);
+  pyrPanel.addEventListener('mouseleave',hidePyramid);
   map.on('click',e=>{
     const hits=map.queryRenderedFeatures(e.point,{layers:map.getLayer('hosp-pt')?['hosp-pt']:[]});
     if(hits.length){const id=hits[0].properties.id; selHosp=(selHosp===id?null:id); applyCoverage();
@@ -321,6 +329,7 @@ function wireInteractions(){
   map.on('mouseleave','hosp-pt',()=>{map.getCanvas().style.cursor='';pop.remove();});
   const pr=(k,v)=>`<div class="pop-row"><span class="pop-k">${k}</span> <span class="pop-v">${v}</span></div>`;
   map.on('mousemove','sgg-hover',e=>{const p=e.features[0].properties;
+    cancelPyrHide();
     let h=`<div class="pop-name">${(p.sido||'')} ${p.name||''}</div>`;
     h+=pr('최근접 상급종합', p.access_min==null?'-':p.access_min+'분 <span style="color:#9ca3af">(자유흐름)</span>');
     h+=pr('교통반영(TMAP)', p.access_min_tmap==null?'-':p.access_min_tmap+'분');
@@ -330,7 +339,7 @@ function wireInteractions(){
     h+=pr('관내 종합병원', (p.hosp_gen_cnt??0)+'개');
     pop.setLngLat(e.lngLat).setHTML(h).addTo(map);
     if(p.code)renderPyramid(String(p.code));});
-  map.on('mouseleave','sgg-hover',()=>pop.remove());
+  map.on('mouseleave','sgg-hover',()=>{pop.remove();schedulePyrHide();});
 }
 
 /* ---------- 이벤트 ---------- */
