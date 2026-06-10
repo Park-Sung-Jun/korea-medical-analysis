@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>합성 건강검진 데이터 생성기</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <b>합성 건강검진 데이터 생성기</b>
+    <span class="brand-tag">KOSIS 건강검진통계 기반</span>
+  </div>
+  <nav class="topnav">
+    <a id="reportLink" href="https://korea-medical-access.vercel.app/#kpi"
+       target="_blank" rel="noopener">의료취약지 리포트 ↗</a>
+  </nav>
+</header>
+
+<main class="page">
+
+  <!-- 설정 패널 -->
+  <section class="card settings" aria-label="생성 설정">
+    <form id="genForm" autocomplete="off" novalidate>
+      <div class="fields">
+        <div class="field">
+          <label for="nSelect">표본 수</label>
+          <div class="field-row">
+            <select id="nSelect">
+              <option value="1000">1,000</option>
+              <option value="5000">5,000</option>
+              <option value="10000" selected>10,000</option>
+              <option value="50000">50,000</option>
+              <option value="100000">100,000</option>
+              <option value="500000">500,000 (수 분 소요)</option>
+              <option value="custom">직접입력</option>
+            </select>
+            <input type="number" id="nCustom" min="100" max="500000" step="1" value="10000"
+                   aria-label="표본 수 직접입력" hidden />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="sidoSelect">시도</label>
+          <select id="sidoSelect">
+            <option value="전체">전체</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="sigunguSelect">시군구 <span class="hint">시도 선택 시 활성</span></label>
+          <select id="sigunguSelect" disabled
+                  title="인구구조(연령·성)는 시군구, 검사수치 분포는 소속 시도 기준(KOSIS 제공 한계)">
+            <option value="">전체</option>
+          </select>
+        </div>
+
+        <div class="field field--corr">
+          <label for="corrRange">항목 간 상관강도 <span class="hint">0이면 독립, 1이 표준</span></label>
+          <div class="field-row">
+            <input type="range" id="corrRange" min="0" max="1.5" step="0.05" value="1" />
+            <output id="corrValue" for="corrRange">1.00</output>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="seedInput">재현 시드 <span class="hint">같은 시드 = 같은 데이터</span></label>
+          <input type="number" id="seedInput" placeholder="비우면 매번 새 무작위" step="1"
+                 title="난수 초기값입니다. 같은 조건+같은 시드로 생성하면 완전히 동일한 데이터가 재현됩니다. 비우면 매번 다른 무작위 데이터가 나옵니다." />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" id="genBtn" class="btn btn--primary">
+          <span class="spinner" id="genSpinner" hidden></span>
+          <span id="genLabel">생성</span>
+        </button>
+        <span class="actions-divider" aria-hidden="true"></span>
+        <button type="button" class="btn btn--dl" data-dl="a" disabled>A안 CSV</button>
+        <button type="button" class="btn btn--dl" data-dl="b" disabled>B안 CSV</button>
+        <button type="button" class="btn btn--dl" data-dl="c" disabled>C안 CSV</button>
+        <span class="seed-used" id="seedUsed" hidden></span>
+      </div>
+    </form>
+  </section>
+
+  <div id="errorBox" class="error-box" role="alert" hidden></div>
+
+  <!-- KPI 카드 -->
+  <section class="kpis" aria-label="요약 지표">
+    <div class="kpi">
+      <div class="kpi-label">생성 표본 수</div>
+      <div class="kpi-value" id="kpiRows">—</div>
+      <div class="kpi-sub" id="kpiRowsSub">행</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">생성 시간</div>
+      <div class="kpi-value" id="kpiTime">—</div>
+      <div class="kpi-sub" id="kpiTimeSub">&nbsp;</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">평균 분포 오차</div>
+      <div class="kpi-value" id="kpiDiff">—</div>
+      <div class="kpi-sub" id="kpiDiffSub">KOSIS 원시 전국 대비</div>
+    </div>
+    <div class="kpi" title="정상A: 건강 양호 / 정상B: 자기관리·예방조치 필요(경계) / 질환의심: 2차 정밀검사 필요 / 유질환자: 현재 치료 중인 질환 보유">
+      <div class="kpi-label">판정 분포</div>
+      <div class="kpi-value kpi-value--sm" id="kpiGrade">—</div>
+      <div class="kpi-sub">정상A · 정상B · 질환의심 · 유질환자 (합성데이터 탭에 기준 설명)</div>
+    </div>
+  </section>
+
+  <!-- 탭 -->
+  <div class="tabs" role="tablist" aria-label="결과 보기">
+    <button type="button" class="tab is-active" role="tab" id="tab-a" data-tab="a"
+            aria-selected="true" aria-controls="panel-a">합성데이터</button>
+    <button type="button" class="tab" role="tab" id="tab-b" data-tab="b"
+            aria-selected="false" aria-controls="panel-b">검사항목요약</button>
+    <button type="button" class="tab" role="tab" id="tab-c" data-tab="c"
+            aria-selected="false" aria-controls="panel-c">시도연령별 위험군</button>
+    <button type="button" class="tab" role="tab" id="tab-v" data-tab="v"
+            aria-selected="false" aria-controls="panel-v">데이터 신뢰도</button>
+    <button type="button" class="tab" role="tab" id="tab-p" data-tab="p"
+            aria-selected="false" aria-controls="panel-p">재식별 위험성평가</button>
+  </div>
+
+  <!-- A안 -->
+  <section class="panel" id="panel-a" role="tabpanel" aria-labelledby="tab-a">
+    <div class="empty-state" data-empty>좌측 상단에서 조건을 설정하고 생성을 누르세요.</div>
+    <div class="panel-body" data-body hidden>
+      <p class="panel-note">미리보기 200행 — 전체 데이터는 A안 CSV 다운로드</p>
+      <p class="grade-legend" id="gradeLegend">
+        종합판정 기준 —
+        <b>정상A</b> 건강 양호 ·
+        <b>정상B</b> 이상은 없으나 자기관리·예방조치 필요(경계) ·
+        <b>질환의심</b> 질환 의심, 2차 정밀검사 필요 ·
+        <b>유질환자</b> 고혈압·당뇨 등 현재 치료 중(KOSIS 판정현황 비율 반영)
+      </p>
+      <div class="table-scroll table-scroll--tall">
+        <table id="tableA" class="data-table">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <button type="button" class="btn btn--sm" id="pagePrev">이전</button>
+        <span class="pager-info" id="pageInfo"></span>
+        <button type="button" class="btn btn--sm" id="pageNext">다음</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- B안 -->
+  <section class="panel" id="panel-b" role="tabpanel" aria-labelledby="tab-b" hidden>
+    <div class="empty-state" data-empty>좌측 상단에서 조건을 설정하고 생성을 누르세요.</div>
+    <div class="panel-body" data-body hidden>
+      <div class="table-scroll">
+        <table id="tableB" class="data-table summary-table">
+          <thead>
+            <tr>
+              <th class="colw-ind">지표</th>
+              <th class="colw-crit">판정 기준</th>
+              <th>분포 — 정상 · 주의 · 질환의심</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- C안 -->
+  <section class="panel" id="panel-c" role="tabpanel" aria-labelledby="tab-c" hidden>
+    <div class="empty-state" data-empty>좌측 상단에서 조건을 설정하고 생성을 누르세요.</div>
+    <div class="panel-body" data-body hidden>
+      <div class="heat-toolbar">
+        <div class="seg" id="metricSeg" role="group" aria-label="지표 선택">
+          <button type="button" data-metric="risk_score" class="on">종합위험점수</button>
+          <button type="button" data-metric="obesity_pct">비만</button>
+          <button type="button" data-metric="htn_pct">고혈압</button>
+          <button type="button" data-metric="dm_pct">당뇨</button>
+          <button type="button" data-metric="dyslip_pct">이상지질</button>
+        </div>
+        <div class="legend" id="riskLegend">
+          <span class="legend-title">위험수준(셀 툴팁)</span>
+          <span class="chip chip--ok">낮음</span>
+          <span class="chip chip--warn">보통</span>
+          <span class="chip chip--bad">높음</span>
+          <span class="legend-note" id="heatNote">셀 농도 = 종합위험점수</span>
+          <span class="legend-note">* = 표본 30 미만(불안정, 참고용)</span>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table id="tableC" class="data-table heatmap">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 데이터 신뢰도 -->
+  <section class="panel" id="panel-v" role="tabpanel" aria-labelledby="tab-v" hidden>
+    <div class="empty-state" data-empty>좌측 상단에서 조건을 설정하고 생성을 누르세요.</div>
+    <div class="panel-body" data-body hidden>
+
+      <div class="heat-toolbar verify-toolbar">
+        <div class="seg" id="errMetricSeg" role="group" aria-label="오차 지표">
+          <button type="button" data-em="max" class="on">최대 오차</button>
+          <button type="button" data-em="mae">평균 오차</button>
+        </div>
+        <div class="seg" id="errTolSeg" role="group" aria-label="오차 판정 기준">
+          <button type="button" data-tol="0.5" class="on">±0.5%p</button>
+          <button type="button" data-tol="1">±1%p</button>
+          <button type="button" data-tol="2">±2%p</button>
+        </div>
+        <span class="legend-note" id="errRuleNote"></span>
+      </div>
+
+      <h3 class="vsection-title">인구 구성 — 성·연령·지역</h3>
+      <p id="demoNote" class="verify-note"></p>
+      <div id="demoList" class="verify-list"></div>
+
+      <h3 class="vsection-title">검사항목 일치율 — 성·연령 셀 / 시도 셀</h3>
+      <p id="fidelityNote" class="verify-note"></p>
+      <div class="table-scroll">
+        <table id="fidelityTable" class="data-table fidelity-table">
+          <thead>
+            <tr>
+              <th class="colw-ind">검사항목</th>
+              <th>전체 오차</th>
+              <th>성·연령 셀 (평균/최대)</th>
+              <th>시도 셀 (평균/최대)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3 class="vsection-title">검사항목 분포 — KOSIS 대비</h3>
+      <p id="verifyNote" class="verify-note"></p>
+      <div id="verifyList" class="verify-list"></div>
+    </div>
+  </section>
+
+  <!-- 재식별 위험성평가 -->
+  <section class="panel" id="panel-p" role="tabpanel" aria-labelledby="tab-p" hidden>
+    <div class="empty-state" data-empty>좌측 상단에서 조건을 설정하고 생성을 누르세요.</div>
+    <div class="panel-body" data-body hidden>
+      <div class="risk-summary" id="privacySummary"></div>
+      <p id="privacyNote" class="verify-note"></p>
+
+      <h3 class="vsection-title">k-익명성 · l-다양성 · t-근접성 — 준식별자별</h3>
+      <p class="verify-note" id="ltNote">
+        판정 기준은 k≥3(연구·내부 공유에서 통용되는 실무 하한 — 현행 가명정보 처리
+        가이드라인은 고정 k를 규정하지 않음)이며, 보건의료 데이터의 보수적 통념인
+        k≥5 충족률을 함께 병기합니다. l-다양성·t-근접성의 민감속성은 종합판정입니다.
+        l=1 클래스는 해당 조합의 판정값이 그대로 노출되는 구조이고, t는 연령↔판정의
+        실제 상관(고령일수록 유질환자↑)을 반영하므로 0이 되지 않는 것이 정상입니다.
+      </p>
+      <div class="table-scroll">
+        <table id="kanonTable" class="data-table">
+          <thead>
+            <tr>
+              <th class="colw-ind">준식별자(QI)</th>
+              <th>조합 수</th>
+              <th>최소 k</th>
+              <th>유일(k=1)</th>
+              <th>k≥3 만족</th>
+              <th>k≥5 만족</th>
+              <th>최소 l</th>
+              <th>t (평균)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3 class="vsection-title">구조적 안전성 점검</h3>
+      <div id="privacyChecks" class="check-list"></div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    본 데이터는 KOSIS 국민건강보험공단 건강검진통계(2024)의 집계 분포로부터 생성된 가상 개인 데이터입니다.
+    실존 인물과 무관하며 연구·개발·교육용으로만 사용하십시오.
+  </footer>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

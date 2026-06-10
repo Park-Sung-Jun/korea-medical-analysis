@@ -1,0 +1,1227 @@
+[
+  {
+    "type": "folder",
+    "id": "350_35007_A001",
+    "name": "일반건강검진",
+    "children": [
+      {
+        "type": "table",
+        "id": "DT_35007_N144_1",
+        "name": "직역별 성별 일반건강검진 대상 및 수검인원 현황 : 전체",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N144",
+        "name": "직역별 성별 일반건강검진 대상 및 수검인원 현황 : 전체",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N001_1",
+        "name": "시군구별 성별 일반건강검진 대상 및 수검인원 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N001",
+        "name": "시군구별 성별 일반건강검진 대상 및 수검인원 현황",
+        "org_id": "350",
+        "rec_tbl_se": "Y"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N002_1",
+        "name": "연령별 성별 일반건강검진 대상 및 수검인원 현황 : 전체",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N002",
+        "name": "연령별 성별 일반건강검진 대상 및 수검인원 현황 : 전체",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N097_1",
+        "name": "연령별 성별 일반건강검진 대상 및 수검인원 현황 : 외국인",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N097",
+        "name": "연령별 성별 일반건강검진 대상 및 수검인원 현황 : 외국인",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N098",
+        "name": "시군구별 성별 일반건강검진 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N003",
+        "name": "시군구별 성별 일반건강검진 1차 판정현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N099",
+        "name": "연령별 성별 일반건강검진 판정 현황 : 전체",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N004",
+        "name": "연령별 성별 일반건강검진 1차 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N100",
+        "name": "연령별 성별 일반건강검진 판정 현황 : 외국인",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N101",
+        "name": "시군구별 성별 일반건강검진 판정결과 정상B 세부현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N102",
+        "name": "연령별 성별 일반건강검진 판정결과 정상B 세부현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N103",
+        "name": "시군구별 성별 일반건강검진 판정결과 질환의심 세부현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N104",
+        "name": "연령별 성별 일반건강검진 판정결과 질환의심 세부현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N105",
+        "name": "시군구별 성별 일반건강검진 판정결과 유질환자 세부현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N106",
+        "name": "연령별 성별 일반건강검진 판정결과 유질환자 세부현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N1070",
+        "name": "시군구별 연령별 성별 일반건강검진 인지기능장애검사 결과",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N1180",
+        "name": "시도별 연령별 성별 일반건강검진 정신건강검사 결과 (기분상태 및 우울증)",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N0310",
+        "name": "시도별 연령별 성별 일반건강검진 일상생활수행능력 및 노인신체기능평가 결과",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N0280",
+        "name": "시도별 연령별 성별 일반건강검진 생활습관평가 결과",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N107",
+        "name": "시군구별 성별 일반건강검진 정신건강검사 결과 : 인지기능장애",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N108",
+        "name": "시군구별 성별 일반건강검진 2차 판정현황 : 당뇨병, 고혈압",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N109",
+        "name": "연령별 성별 일반건강검진 2차 판정현황 : 당뇨병, 고혈압",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N005",
+        "name": "시군구별 성별 일반건강검진 1차 판정결과 세부현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N006",
+        "name": "연령별 성별 일반건강검진 1차 판정결과 세부현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N007",
+        "name": "시군구별 성별 일반건강검진 2차 판정현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N008",
+        "name": "연령별 성별 일반건강검진 2차 판정현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      }
+    ]
+  },
+  {
+    "type": "folder",
+    "id": "350_35007_A002",
+    "name": "암검진",
+    "children": [
+      {
+        "type": "table",
+        "id": "DT_35007_N145",
+        "name": "직역별 성별 암검진 대상 및 수검인원 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N009",
+        "name": "시군구별 성별 암검진 대상 및 수검인원 현황",
+        "org_id": "350",
+        "rec_tbl_se": "Y"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N010",
+        "name": "연령별 성별 암검진 대상 및 수검인원 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N011",
+        "name": "시군구별 성별 위암검진 결과 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N012",
+        "name": "연령별 성별 위암검진 결과 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N140",
+        "name": "위장 조영 및 내시경 검사결과 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N141",
+        "name": "위암 검진 조직진단 결과 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N013",
+        "name": "시군구별 성별 대장암 검진 결과 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N014",
+        "name": "연령별 성별 대장암 검진 결과 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N142",
+        "name": "대장 이중조영 및 내시경 검사 결과 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N143",
+        "name": "대장암 검진 조직진단 결과 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_350007N_001",
+        "name": "시군구별 성별 간암 검진 결과 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N015",
+        "name": "시군구별 성별 간암 검진 결과 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_350007N_002",
+        "name": "연령별 성별 간암 검진 결과 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N016",
+        "name": "연령별 성별 간암 검진 결과 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N017",
+        "name": "시군구별 유방암 검진 결과 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N018",
+        "name": "연령별 유방암 검진 결과 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N019",
+        "name": "시군구별 자궁경부암 검진 결과 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N020",
+        "name": "연령별 자궁경부암 검진 결과 판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N201",
+        "name": "시군구별 성별 폐암 검진 결과 판정현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N202",
+        "name": "연령별 성별 폐암 검진 결과 판정현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      }
+    ]
+  },
+  {
+    "type": "folder",
+    "id": "350_35007_A003",
+    "name": "생애전환기건강진단",
+    "children": [
+      {
+        "type": "table",
+        "id": "DT_35007_N146",
+        "name": "직역별 성별 생애전환기 건강진단 대상 및 수검인원 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N021",
+        "name": "시군구별 성별 생애전환기건강진단 대상 및 수검인원 현황",
+        "org_id": "350",
+        "rec_tbl_se": "Y"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N110",
+        "name": "시군구별 성별 생애전환기(40세) 건강진단 1차 판정현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N022",
+        "name": "시군구별 성별 생애전환기(40세) 건강진단 1차 판정현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N111",
+        "name": "시군구별 성별 생애전환기(66세) 건강진단 1차 판정현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N023",
+        "name": "시군구별 성별 생애전환기(66세) 건강진단 1차 판정현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N112",
+        "name": "시군구별 성별 생애전환기(40세) 건강진단 1차 판정결과 : 정상B",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N113",
+        "name": "시군구별 성별 생애전환기(66세) 건강진단 1차 판정결과 : 정상B",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N114",
+        "name": "시군구별 성별 생애전환기(40세) 건강진단 1차 판정결과 : 질환의심",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N115",
+        "name": "시군구별 성별 생애전환기(66세) 건강진단 1차 판정결과 : 질환의심",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N116",
+        "name": "시군구별 성별 생애전환기(40세) 건강진단 1차 판정결과 : 유질환자",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N117",
+        "name": "시군구별 성별 생애전환기(66세) 건강진단 1차 판정결과 : 유질환자",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N118",
+        "name": "시군구별 성별 생애전환기 건강진단 정신건강검사 결과 : 기분상태 및 우울증",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N119",
+        "name": "시군구별 성별 생애전환기(66세) 건강진단 정신건강검사 결과 : 인지기능장애",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N031",
+        "name": "시군구별 성별 생애전환기(66세) 건강진단 1차 일상생활 수행능력 및 노인신체기능평가 결과",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N026",
+        "name": "시군구별 성별 생애전환기(40세) 건강진단 2차 판정현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N027",
+        "name": "시군구별 성별 생애전환기(66세) 건강진단 2차 판정현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N028",
+        "name": "시군구별 성별 생애전환기(40세) 건강진단 2차 생활습관 평가결과",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N029",
+        "name": "시군구별 성별 생애전환기(66세) 건강진단 2차 생활습관 평가결과",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N024",
+        "name": "시군구별 성별 생애전환기(40세) 건강진단 1차 판정결과 세부현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N025",
+        "name": "시군구별 성별 생애전환기(66세) 건강진단 1차 판정결과 세부현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N030",
+        "name": "시군구별 성별 생애전환기 건강진단 정신건강검사 결과 : 우울증 및 인지기능장애",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      }
+    ]
+  },
+  {
+    "type": "folder",
+    "id": "350_35007_A004",
+    "name": "영유아건강검진",
+    "children": [
+      {
+        "type": "table",
+        "id": "DT_35007_N147",
+        "name": "직역별 성별 영유아건강검진 대상 및 수검인원 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N124",
+        "name": "시군구별 성별 영유아 건강검진 대상 및 수검인원 현황",
+        "org_id": "350",
+        "rec_tbl_se": "Y"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N032",
+        "name": "시군구별 성별 영유아 건강검진 대상 및 수검인원 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N125",
+        "name": "영유아 건강검진 결과현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N033",
+        "name": "영유아 건강검진 결과현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N126",
+        "name": "시군구별 성별 영유아 건강검진 종합판정현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N120",
+        "name": "시군구별 성별 영유아 건강검진 종합판정현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N034",
+        "name": "시군구별 성별 영유아 건강검진 종합판정현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      }
+    ]
+  },
+  {
+    "type": "folder",
+    "id": "350_35007_A005",
+    "name": "구강검진",
+    "children": [
+      {
+        "type": "table",
+        "id": "DT_35007_N035",
+        "name": "시군구별 성별 구강검진 대상 및 수검인원 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N036",
+        "name": "연령별 성별 구강검진 대상 및 수검인원 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N148",
+        "name": "일반건강검진 시도별 성별 구강검진 종합판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N149",
+        "name": "일반건강검진 연령별 성별 구강검진 종합판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N152",
+        "name": "영유아건강검진 시도별 성별 구강검진 종합판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N150",
+        "name": "생애전환기건강진단 시·도별 성별 구강검진 종합판정 및 조치사항 현황(40세)",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N151",
+        "name": "생애전환기건강진단 시·도별 성별 구강검진 종합판정 및 조치사항 현황(66세)",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N039",
+        "name": "시도별 성별 생애전환기(40세) 건강진단 대상자 구강검진 종합소견 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N040",
+        "name": "시도별 성별 생애전환기(66세) 건강진단 대상자 구강검진 종합소견 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N037",
+        "name": "시도별 성별 일반건강검진 대상자 구강검진 종합소견 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N038",
+        "name": "연령별 성별 일반건강검진 대상자 구강검진 종합소견 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N127",
+        "name": "시도별 성별 영유아 건강검진 대상자 구강검진 종합판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N041",
+        "name": "시도별 성별 영유아 건강검진 대상자 구강검진 종합판정 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      }
+    ]
+  },
+  {
+    "type": "folder",
+    "id": "350_35007_A006",
+    "name": "문진",
+    "children": [
+      {
+        "type": "table",
+        "id": "DT_35007_N042",
+        "name": "시도별 성별 질환력(과거력, 가족력) 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N043",
+        "name": "연령별 성별 질환력(과거력, 가족력) 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N044",
+        "name": "시도별 성별 흡연 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N045",
+        "name": "연령별 성별 흡연 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N0440",
+        "name": "시도별 성별 전자흡연 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N0450",
+        "name": "연령별 성별 전자흡연 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N0460",
+        "name": "시도별 성별 음주 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N046",
+        "name": "시도별 성별 음주 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N0470",
+        "name": "연령별 성별 음주 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N047",
+        "name": "연령별 성별 음주 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N0480",
+        "name": "시도별 성별 신체활동(운동) 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N048",
+        "name": "시도별 성별 신체활동(운동) 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N0490",
+        "name": "연령별 성별 신체활동(운동) 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N049",
+        "name": "연령별 성별 신체활동(운동) 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N050",
+        "name": "시도별 성별 암 검진 공통사항(검사 경험 유무 및 검사 시기)",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N051",
+        "name": "연령별 성별 암 검진 공통사항(검사 경험 유무 및 검사 시기)",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N052",
+        "name": "시도별 성별 위암, 대장암, 간암, 폐암 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N053",
+        "name": "연령별 성별 위암, 대장암, 간암, 폐암 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N054",
+        "name": "시도별 유방암, 자궁경부암 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N055",
+        "name": "연령별 유방암, 자궁경부암 관련 문항",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      }
+    ]
+  },
+  {
+    "type": "folder",
+    "id": "350_35007_A007",
+    "name": "검사항목별성적",
+    "children": [
+      {
+        "type": "table",
+        "id": "DT_35007_N056",
+        "name": "시도별 체질량 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N057",
+        "name": "연령별 체질량 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N058",
+        "name": "시도별 허리둘레 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N059",
+        "name": "연령별 허리둘레 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N121",
+        "name": "시도별 시력 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N122",
+        "name": "연령별 시력 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N060",
+        "name": "시도별 이완기혈압 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N061",
+        "name": "연령별 이완기혈압 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N062",
+        "name": "시도별 수축기혈압 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N063",
+        "name": "연령별 수축기혈압 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N064",
+        "name": "시도별 요단백 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N065",
+        "name": "연령별 요단백 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N066",
+        "name": "시도별 혈색소 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N067",
+        "name": "연령별 혈색소 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N068",
+        "name": "시도별 공복혈당 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N069",
+        "name": "연령별 공복혈당 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N070",
+        "name": "시도별 총콜레스테롤 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N071",
+        "name": "연령별 총콜레스테롤 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N072",
+        "name": "시도별 HDL콜레스테롤 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N073",
+        "name": "연령별 HDL콜레스테롤 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N074",
+        "name": "시도별 트리글리세라이드 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N075",
+        "name": "연령별 트리글리세라이드 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N076",
+        "name": "시도별 LDL콜레스테롤 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N077",
+        "name": "연령별 LDL콜레스테롤 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N078",
+        "name": "시도별 혈청크레아티닌 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N079",
+        "name": "연령별 혈청크레아티닌 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N128",
+        "name": "시도별 신사구체여과율 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N129",
+        "name": "연령별 신사구체여과율 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N080",
+        "name": "시도별 AST(SGOT) 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N081",
+        "name": "연령별 AST(SGOT) 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N082",
+        "name": "시도별 ALT(SGPT) 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N083",
+        "name": "연령별 ALT(SGPT) 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N084",
+        "name": "시도별 감마지티피(γ-GTP) 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N085",
+        "name": "연령별 감마지티피(γ-GTP) 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N086",
+        "name": "시도별 흉부방사선결과 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N087",
+        "name": "연령별 흉부방사선결과 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N094",
+        "name": "시도별 골밀도 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N130",
+        "name": "시도별 연령별 성별 평균 신장 분포 현황 : 일반",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N131",
+        "name": "시도별 월령별 성별 평균 신장 분포 현황 : 영유아",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N132",
+        "name": "시도별 연령별 성별 평균 체중 분포 현황 : 일반",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N133",
+        "name": "시도별 월령별 성별 평균 체중 분포 현황 : 영유아",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N088",
+        "name": "시도별 2차 검진 이완기혈압 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N089",
+        "name": "연령별 2차 검진 이완기혈압 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N090",
+        "name": "시도별 2차 검진 수축기혈압 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N091",
+        "name": "연령별 2차 검진 수축기혈압 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N092",
+        "name": "시도별 2차 검진 공복혈당 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N093",
+        "name": "연령별 2차 검진 공복혈당 분포 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      }
+    ]
+  },
+  {
+    "type": "folder",
+    "id": "350_35007_BC",
+    "name": "대사증후군",
+    "children": [
+      {
+        "type": "table",
+        "id": "DT_35007_N134",
+        "name": "직역별 성별 대사증후군 위험요인 보유개수별 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N135",
+        "name": "시군구별 성별 대사증후군 위험요인 보유개수별 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N136",
+        "name": "연령별 성별 대사증후군 위험요인 보유개수별 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N137",
+        "name": "직역별 성별 대사증후군 위험요인별 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N138",
+        "name": "시군구별 성별 대사증후군 위험요인별 현황",
+        "org_id": "350",
+        "rec_tbl_se": "Y"
+      },
+      {
+        "type": "table",
+        "id": "DT_35007_N139",
+        "name": "연령별 성별 대사증후군 위험요인별 현황",
+        "org_id": "350",
+        "rec_tbl_se": "N"
+      }
+    ]
+  }
+]

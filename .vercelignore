@@ -10,3 +10,11 @@ _*.tsv
 data/*.csv
 data/_kosis_manifest.tsv
 data/synthetic_baseline.json
+data/DT_*.json
+data/*.xls
+data/*.xlsx
+
+# 시크릿 — 루트에서 vercel CLI 직접 배포 시에도 절대 번들 금지(심층방어)
+.env
+config.local.js
+scripts/ors_key.txt

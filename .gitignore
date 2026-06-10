@@ -16,11 +16,25 @@ scripts/__pycache__/
 config.local.js
 scripts/ors_key.txt
 
+# 로컬 전용 KOSIS 디버그/탐색 스크립트(키를 .env에서 로드하나 커밋 불필요)
+scripts/test_data.py
+scripts/test_kosis.py
+scripts/test_meta.py
+scripts/check_itm_meta.py
+scripts/list_tables.py
+
+# 합성데이터 생성기 — 운영 문서(서버 IP·인프라 구성)는 로컬 전용, 캐시 제외
+synthetic/DEPLOY.md
+synthetic/__pycache__/
+
 # 대용량/파생 데이터 (정적 사이트에 불필요, 재생성 가능)
 data/pop_202512.json
 data/sigungu.geojson
 data/sigungu_try1.json
 data/*.csv
+data/DT_*.json
+data/*.xls
+data/*.xlsx
 
 # 정적 사이트가 fetch 하는 데이터는 커밋:
 #   data/hospitals.geojson, data/isochrones.geojson,
