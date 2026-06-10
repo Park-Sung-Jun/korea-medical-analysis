@@ -195,6 +195,9 @@
     </div>
     <div style="font-size:13px;font-weight:700;margin:22px 0 8px">저수검 시군구의 두 얼굴 — 같은 증상, 정반대 원인 (C. 유형화)</div>
     <div class="grid2" id="checkupTypology"></div>
+    <div style="font-size:13px;font-weight:700;margin:22px 0 8px">암검진도 같은 패턴인가 — 지도의 <b>암검진 수검률</b> 뷰와 연동</div>
+    <div class="corr" id="cancerCorr"></div>
+    <div class="note" id="cancerNote" style="margin-top:10px"></div>
   </section>
 
   <section id="health" class="reveal">
@@ -423,6 +426,22 @@ function healthView(){
      그런데 질환부담이 큰 곳일수록 <b>수검률은 낮다</b>(유질환 r=${d.corr.checkup_rate}, 대사증후군 r=${m.corr.checkup_rate}).
      <b>가장 아픈 곳이 검진을 가장 덜 받는</b> ‘역돌봄(inverse care)’ 구조다. 접근성과도 양(+)의 상관(질환↑ where 접근↓) —
      <b>고령·질환·저수검·접근불리가 같은 시군구에 겹친다.</b> 우선순위 자원배분의 근거다.`;
+  cancerView();
+}
+function cancerView(){
+  const ca=H&&H.indicators&&H.indicators.cancer_rate; if(!ca)return;
+  const el1=document.getElementById('cancerCorr'), el2=document.getElementById('cancerNote');
+  if(!el1)return;
+  el1.innerHTML=`
+    <div class="c"><b style="color:var(--accent)">${ca.national_rate}%</b><span>전국 암검진 수검률 (일반검진 ${C?C.national_rate:'75.6'}%)</span></div>
+    <div class="c"><b>+${ca.corr.checkup_rate}</b><span>일반검진 수검률과 동행</span></div>
+    <div class="c"><b>${ca.corr.aging_index}</b><span>고령화 상관 (일반검진 ${C?C.corr.aging_index.r:'-0.62'}보다 약함)</span></div>`;
+  el2.innerHTML=
+    `암검진 수검률(${ca.national_rate}%, 시군구 ${ca.range[0]}~${ca.range[1]}%)은 일반검진보다 일관되게 <b>15%p가량 낮고</b>,
+     두 수검률은 강하게 동행한다(r=+${ca.corr.checkup_rate}) — <b>검진을 안 받는 곳은 종류를 가리지 않고 안 받는다</b>.
+     다만 고령화 결합은 일반검진(r=${C?C.corr.aging_index.r:'-0.62'})보다 약하고(r=${ca.corr.aging_index}) 접근성 결합은 비슷(r=${ca.corr.access_min}) —
+     암검진은 내시경·영상 등 <b>장비 인프라가 필요해 거리 장벽이 상대적으로 더 작용</b>하는 것으로 읽힌다.
+     저수검 유형화(위)의 처방이 암검진에도 그대로 적용된다.`;
 }
 
 const AX={ axisLine:{lineStyle:{color:'#d1d5db'}}, axisLabel:{color:'#6b7280'},

@@ -78,6 +78,7 @@
       <button data-view="bivar">접근성×고령화</button>
       <button data-view="aging">고령화지수</button>
       <button data-view="checkup">건강검진 수검률</button>
+      <button data-view="cancer">암검진 수검률</button>
       <button data-view="disease">유질환자율</button>
       <button data-view="metabolic">대사증후군</button>
     </div>
@@ -194,6 +195,8 @@ function addAppLayers(){
     map.addLayer({id:'sgg-bivar',type:'fill',source:'sgg',layout:{visibility:'none'},paint:{'fill-color':bivarMatch(tp),'fill-opacity':op}},before);}
   if(DATA.sgg&&!map.getLayer('sgg-checkup'))map.addLayer({id:'sgg-checkup',type:'fill',source:'sgg',layout:{visibility:'none'},
     paint:{'fill-color':checkupMatch,'fill-opacity':op}},before);
+  if(DATA.sgg&&!map.getLayer('sgg-cancer'))map.addLayer({id:'sgg-cancer',type:'fill',source:'sgg',layout:{visibility:'none'},
+    paint:{'fill-color':classMatch('cancer_rate',CHECKUP),'fill-opacity':op}},before);
   if(DATA.sgg&&!map.getLayer('sgg-disease'))map.addLayer({id:'sgg-disease',type:'fill',source:'sgg',layout:{visibility:'none'},
     paint:{'fill-color':classMatch('disease_rate',SEVHI),'fill-opacity':op}},before);
   if(DATA.sgg&&!map.getLayer('sgg-metabolic'))map.addLayer({id:'sgg-metabolic',type:'fill',source:'sgg',layout:{visibility:'none'},
@@ -231,9 +234,9 @@ function addAppLayers(){
 function setVis(id,v){if(map.getLayer(id))map.setLayoutProperty(id,'visibility',v?'visible':'none');}
 
 function applyView(){
-  const isoOn=view==='iso',agingOn=view==='aging',bivOn=view==='bivar',chkOn=view==='checkup',disOn=view==='disease',metOn=view==='metabolic';
+  const isoOn=view==='iso',agingOn=view==='aging',bivOn=view==='bivar',chkOn=view==='checkup',disOn=view==='disease',metOn=view==='metabolic',canOn=view==='cancer';
   setVis('iso-fill',isoOn);setVis('iso-line',isoOn);setVis('sgg-aging',agingOn);setVis('sgg-bivar',bivOn);
-  setVis('sgg-checkup',chkOn);setVis('sgg-disease',disOn);setVis('sgg-metabolic',metOn);
+  setVis('sgg-checkup',chkOn);setVis('sgg-disease',disOn);setVis('sgg-metabolic',metOn);setVis('sgg-cancer',canOn);
   renderLegend();
 }
 function applySggToggle(){const on=document.getElementById('toggle-sgg').checked;
@@ -269,6 +272,9 @@ function renderLegend(){
   else if(view==='checkup'){h=`<h2>일반건강검진 수검률 (2024)</h2>
     ${row(CHECKUP.C1,'하위 ⅓ · 낮음(취약)')}${row(CHECKUP.C2,'중간 ⅓')}${row(CHECKUP.C3,'상위 ⅓ · 높음')}
     <div class="note">전국 75.6% · 시군구 66~83%<br/>접근성과 <b>약상관</b>(r −0.21), 고령화와 <b>강상관</b>(r −0.62)<br/>KOSIS 국민건강검진 · 성별 합계</div>`;}
+  else if(view==='cancer'){h=`<h2>암검진 수검률 (2024)</h2>
+    ${row(CHECKUP.C1,'하위 ⅓ · 낮음(취약)')}${row(CHECKUP.C2,'중간 ⅓')}${row(CHECKUP.C3,'상위 ⅓ · 높음')}
+    <div class="note">전국 60.2% · 시군구 51~68%<br/>일반검진과 r +0.73 동행 · 고령화 r −0.46(일반검진보다 약함)<br/>암검진별 계 · 수검/대상인원 · KOSIS</div>`;}
   else if(view==='disease'){h=`<h2>일반건강검진 유질환자율 (2024)</h2>
     ${row(SEVHI.C3,'상위 ⅓ · 높음(취약)')}${row(SEVHI.C2,'중간 ⅓')}${row(SEVHI.C1,'하위 ⅓ · 낮음')}
     <div class="note">전국 28.9% · 시군구 19~49%<br/>고령화와 <b>매우 강한 상관</b>(r +0.87), 수검률과 음상관(r −0.57)<br/>판정현황 유질환자/계 · KOSIS</div>`;}
@@ -365,6 +371,7 @@ function wireInteractions(){
     h+=pr('고령인구(65+)', p.elderly_pop!=null?Number(p.elderly_pop).toLocaleString()+'명':'-');
     h+=pr('고령화지수', p.aging_index??'-');
     h+=pr('건강검진 수검률', p.checkup_rate!=null?p.checkup_rate+'%'+(p.checkup_type?` <span style="color:#dc2626">·${p.checkup_type}</span>`:''):'-');
+    h+=pr('암검진 수검률', p.cancer_rate!=null?p.cancer_rate+'%':'-');
     h+=pr('유질환자율', p.disease_rate!=null?p.disease_rate+'%':'-');
     h+=pr('대사증후군 위험', p.metabolic_rate!=null?p.metabolic_rate+'%':'-');
     h+=pr('관내 상급종합', (p.hosp_sup_cnt??0)+'개');
@@ -387,7 +394,7 @@ document.getElementById('toggle-hosp').addEventListener('change',applyHospToggle
 document.getElementById('toggle-traffic').addEventListener('change',applyTraffic);
 document.getElementById('toggle-pyramid').addEventListener('change',e=>{if(!e.target.checked)document.getElementById('pyramid').style.display='none';});
 document.getElementById('opacity').addEventListener('input',e=>{const o=+e.target.value/100;
-  ['iso-fill','sgg-aging','sgg-bivar','sgg-checkup','sgg-disease','sgg-metabolic'].forEach(l=>{if(map.getLayer(l))map.setPaintProperty(l,'fill-opacity',o);});});
+  ['iso-fill','sgg-aging','sgg-bivar','sgg-checkup','sgg-cancer','sgg-disease','sgg-metabolic'].forEach(l=>{if(map.getLayer(l))map.setPaintProperty(l,'fill-opacity',o);});});
 document.getElementById('sim-clear').addEventListener('click',clearCoverage);
 
 (async()=>{

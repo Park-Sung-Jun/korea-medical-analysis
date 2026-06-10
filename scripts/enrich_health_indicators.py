@@ -1,9 +1,10 @@
 """
 건강검진 ④ 건강지표 지도화 — 시군구별 질환부담 지표를 geojson에 join.
 
-지표(둘 다 KOSIS long-format, 시군구, 2024, 성별 합계):
+지표(모두 KOSIS long-format, 시군구, 2024, 성별 합계):
   - disease_rate   : 유질환자율   = N098 '유질환자' / '계'          (일반건강검진 판정현황)
   - metabolic_rate : 대사증후군 위험군 비율 = N135 '대사증후군(3~5개)' 인원 / '수검자수' 인원
+  - cancer_rate    : 암검진 수검률 = N009 수검인원 / 대상인원 (암검진별 '계', axis=ITM)
 
 핵심 처리:
   - C1 코드 letter가 시도를 인코딩 → 동명 시군구(중구·동구 등 6종) 안전 구분
@@ -35,6 +36,10 @@ INDICATORS = [
      "numer": "유질환자", "denom": "계", "item": None, "label": "유질환자율(%)"},
     {"field": "metabolic_rate", "table": "DT_35007_N135", "year": "2024",
      "numer": "대사증후군(3~5개)", "denom": "수검자수", "item": "인원", "label": "대사증후군 위험군 비율(%)"},
+    # 암검진: 분자/분모가 ITM_NM(수검/대상인원), C3_NM은 암종 구분 → '계' 고정
+    {"field": "cancer_rate", "table": "DT_35007_N009", "year": "2024",
+     "numer": "수검인원", "denom": "대상인원", "item": None, "c3": "계", "axis": "ITM",
+     "label": "암검진 수검률(%)"},
 ]
 
 
@@ -72,19 +77,23 @@ def parse_counts(spec):
         code = r.get("C1")
         name = (r.get("C1_NM") or "").strip()
         c3 = (r.get("C3_NM") or "").strip()
+        if spec.get("c3") and c3 != spec["c3"]:
+            continue
+        # axis=ITM 이면 분자/분모를 ITM_NM(수검/대상인원 등)으로 구분
+        key = (r.get("ITM_NM") or "").strip() if spec.get("axis") == "ITM" else c3
         val = num(r.get("DT"))
         if name in SIDO_SHORT:
             sido_codes[code] = name
             t = sido_totals.setdefault(name, {"n": None, "d": None})
-            if c3 == spec["numer"]:
+            if key == spec["numer"]:
                 t["n"] = val
-            elif c3 == spec["denom"]:
+            elif key == spec["denom"]:
                 t["d"] = val
             continue
         d = per.setdefault(code, {"name": name, "n": None, "d": None})
-        if c3 == spec["numer"]:
+        if key == spec["numer"]:
             d["n"] = val
-        elif c3 == spec["denom"]:
+        elif key == spec["denom"]:
             d["d"] = val
     fp.close()
 
