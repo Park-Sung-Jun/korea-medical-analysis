@@ -79,6 +79,8 @@
   .ctrl-btn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:5px 8px;
     font-size:11.5px;font-family:inherit;cursor:pointer;color:#111}
   .ctrl-btn:hover{background:#f8f9fa}
+  .cov-stat{margin-top:6px;font-size:11.5px;color:#222;line-height:1.5}
+  .cov-stat b{font-variant-numeric:tabular-nums}
   @media(max-width:720px){
     .topbar{flex-wrap:wrap;height:auto;flex:0 0 auto;padding:8px 12px;gap:8px}
     .topbar h1{font-size:13px;flex-basis:100%}
@@ -115,7 +117,7 @@
   <div id="map">
     <div class="panel sim" id="sim">
       <h3>커버리지 시뮬레이터</h3>
-      <div class="hint"><b>병원</b>을 클릭 → 그 병원 등시선 · <b>빈 곳</b>을 클릭 → 가상 병원 등시선. 둘이 겹쳐 “여기 병원이 생기면” 커버리지를 봅니다.</div>
+      <div class="hint"><b>병원</b> 클릭(여러 곳 동시) → 등시선 · <b>빈 곳</b> 클릭 → 가상 병원. 60분 커버 인구가 아래 집계됩니다.</div>
       <div class="selrow" id="sim-sel"></div>
       <button id="sim-clear">커버리지 지우기</button>
     </div>
@@ -201,7 +203,7 @@ function basemapStyle(id){switch(id){
 /* ---------- 상태/데이터 ---------- */
 let DATA={iso:null,sgg:null,hosp:null,hospiso:null,hasBivar:false};
 let PYR=null, view='iso', map, pyChart=null;
-let selHosp=null, ptMarker=null, ptBusy=false;
+let selHosps=new Set(), ptMarker=null, ptBusy=false, ptIsoData=null;
 
 async function loadData(){
   const get=async u=>{try{const r=await fetch(u);return r.ok?await r.json():null;}catch(e){return null;}};
@@ -300,14 +302,60 @@ function applyTraffic(){
   renderLegend();
 }
 function applyCoverage(){
-  if(map.getLayer('hospiso-fill')){const f=['==',['get','hosp_id'],selHosp==null?-1:selHosp];
-    map.setFilter('hospiso-fill',f);map.setFilter('hospiso-line',f);}
-  if(map.getLayer('hosp-sel'))map.setFilter('hosp-sel',['==',['get','id'],selHosp==null?-1:selHosp]);
+  const ids=[...selHosps];
+  const fil=['in',['get','hosp_id'],['literal',ids.length?ids:[-1]]];
+  if(map.getLayer('hospiso-fill')){map.setFilter('hospiso-fill',fil);map.setFilter('hospiso-line',fil);}
+  if(map.getLayer('hosp-sel'))map.setFilter('hosp-sel',['in',['get','id'],['literal',ids.length?ids:[-1]]]);
   const sel=document.getElementById('sim-sel');let h='';
-  if(selHosp!=null){const ft=(DATA.hosp.features||[]).find(x=>x.properties.id===selHosp);
-    h+=`<div><span class="dot" style="background:#3182bd"></span>선택 병원: <b>${ft?ft.properties.name:selHosp}</b></div>`;}
+  if(ids.length){
+    const names=ids.map(id=>{const ft=(DATA.hosp.features||[]).find(x=>x.properties.id===id);return ft?ft.properties.name:id;});
+    h+=`<div><span class="dot" style="background:#3182bd"></span>선택 병원 ${ids.length}곳: <b>${names.slice(0,3).join(', ')}${names.length>3?` 외 ${names.length-3}`:''}</b></div>`;
+  }
   if(ptMarker)h+=`<div style="margin-top:3px"><span class="dot" style="background:#e6550d"></span>가상 병원(클릭 지점)</div>`;
+  // 커버 인구 집계(시군구 중심점이 선택 등시선 안에 들어가는지)
+  const cov=coverageStats();
+  if(cov){
+    h+=`<div class="cov-stat">60분 커버: <b>${cov.n}</b>개 시군구 · 인구 <b>${(cov.pop/10000).toFixed(0)}만</b> · 고령 <b>${(cov.eld/10000).toFixed(1)}만</b></div>`;
+    if(cov.addN!=null)h+=`<div class="cov-stat" style="color:#e6550d">가상 병원 신규 커버: +${cov.addN}개 시군구 · +${(cov.addEld/10000).toFixed(1)}만 고령</div>`;
+  }
   sel.innerHTML=h; renderLegend();
+}
+
+/* ---------- 커버리지 인구 집계(point-in-polygon) ---------- */
+function _pip(pt, geom){
+  const inRing=(rings)=>{let ins=false;const[x,y]=pt;
+    for(const ring of rings){for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+      const xi=ring[i][0],yi=ring[i][1],xj=ring[j][0],yj=ring[j][1];
+      if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))ins=!ins;}
+      break;} // 외곽 ring만(구멍 무시 — 등시선엔 구멍 거의 없음)
+    return ins;};
+  if(geom.type==='Polygon')return inRing(geom.coordinates);
+  if(geom.type==='MultiPolygon')return geom.coordinates.some(poly=>inRing(poly));
+  return false;
+}
+function _maxRing(features){ // hosp_id별 최대(60분) 등시선만
+  const best={};
+  features.forEach(f=>{const id=f.properties.hosp_id,v=f.properties.value||f.properties.minutes*60||0;
+    if(!(id in best)||v>best[id].v)best[id]={v,f};});
+  return Object.values(best).map(o=>o.f);
+}
+function coverageStats(){
+  if(!DATA.hospiso||!DATA.sgg||!selHosps.size&&!ptMarker)return null;
+  const sel=new Set(selHosps);
+  const hpolys=_maxRing((DATA.hospiso.features||[]).filter(f=>sel.has(f.properties.hosp_id)));
+  const ptFeats=ptIsoData||[];
+  const ptPoly=ptFeats.length?[ptFeats.reduce((a,b)=>((a.properties.value||0)>=(b.properties.value||0)?a:b))]:[];
+  let n=0,pop=0,eld=0,addN=0,addEld=0;
+  (DATA.sgg.features||[]).forEach(f=>{
+    const c=centroid(f.geometry),p=f.properties;
+    const inHosp=hpolys.some(h=>_pip(c,h.geometry));
+    const inPt=ptPoly.some(h=>_pip(c,h.geometry));
+    if(inHosp||inPt){n++;pop+=(p.pop_total||0);eld+=(p.elderly_pop||0);
+      if(inPt&&!inHosp){addN++;addEld+=(p.elderly_pop||0);}}
+  });
+  const out={n,pop,eld};
+  if(ptPoly.length){out.addN=addN;out.addEld=addEld;}
+  return out;
 }
 
 /* ---------- 범례 ---------- */
@@ -340,7 +388,7 @@ function renderLegend(){
   else{const tf=document.getElementById('toggle-traffic')&&document.getElementById('toggle-traffic').checked;
     h=`<h2>접근성 × 고령화 ${tf?'<span style="color:#dc2626">· 교통반영</span>':'· 자유흐름'}</h2>${bivarLegend()}
       <div class="note">짙은 우상단 = <b>의료 취약지</b>${tf?' (교통 반영: 60분초과 34→72)':''}</div>`;}
-  if(selHosp!=null||ptMarker){h+=`<hr><h2 style="margin-bottom:6px">커버리지(분)</h2>
+  if(selHosps.size||ptMarker){h+=`<hr><h2 style="margin-bottom:6px">커버리지(분)</h2>
     <div class="row"><span class="sw" style="background:#3182bd"></span>선택 병원 &nbsp;<span class="sw" style="background:#e6550d"></span>가상 병원</div>
     <div class="note">진할수록 가까움(15→60분). 겹친 영역 = 두 병원 동시 커버</div>`;}
   el.innerHTML=h;
@@ -389,11 +437,12 @@ async function placePoint(lng,lat){
     const feats=(gj.features||[]).slice().sort((a,b)=>(b.properties.value||0)-(a.properties.value||0))
       .map(f=>({...f,properties:{...f.properties,minutes:(f.properties.value||0)/60}}));
     map.getSource('ptiso').setData({type:'FeatureCollection',features:feats});
+    ptIsoData=feats;
     toast(feats.length?'가상 병원 커버리지 표시':'결과 없음');
   }catch(e){toast('등시선 호출 실패: '+e.message);if(ptMarker){ptMarker.remove();ptMarker=null;}}
   finally{ptBusy=false;applyCoverage();}
 }
-function clearCoverage(){selHosp=null;
+function clearCoverage(){selHosps.clear();ptIsoData=null;
   if(ptMarker){ptMarker.remove();ptMarker=null;}
   if(map.getSource('ptiso'))map.getSource('ptiso').setData({type:'FeatureCollection',features:[]});
   applyCoverage();}
@@ -411,8 +460,10 @@ function wireInteractions(){
   pyrPanel.addEventListener('mouseleave',hidePyramid);
   map.on('click',e=>{
     const hits=map.queryRenderedFeatures(e.point,{layers:map.getLayer('hosp-pt')?['hosp-pt']:[]});
-    if(hits.length){const id=hits[0].properties.id; selHosp=(selHosp===id?null:id); applyCoverage();
-      toast(selHosp!=null?'선택 병원 커버리지 표시':'선택 해제');}
+    if(hits.length){const id=hits[0].properties.id;
+      if(selHosps.has(id))selHosps.delete(id);else selHosps.add(id);
+      applyCoverage();
+      toast(selHosps.has(id)?`병원 ${selHosps.size}곳 선택(여러 곳 동시 가능)`:'선택 해제');}
     else placePoint(e.lngLat.lng,e.lngLat.lat);
   });
   map.on('mouseenter','hosp-pt',e=>{map.getCanvas().style.cursor='pointer';const p=e.features[0].properties;
@@ -543,7 +594,7 @@ function myNearestHospital(){
     DATA.hosp.features.forEach(f=>{const d=hav(me,f.geometry.coordinates);if(d<bd){bd=d;best=f;}});
     if(!best){toast('병원을 찾지 못했습니다.');return;}
     map.flyTo({center:best.geometry.coordinates,zoom:10});
-    if(best.properties&&best.properties.id!=null){selHosp=best.properties.id;applyCoverage();}
+    if(best.properties&&best.properties.id!=null){selHosps.add(best.properties.id);applyCoverage();}
     toast(`최근접: ${best.properties.name||'상급종합병원'} (직선 ${bd.toFixed(1)}km)`);
   },()=>toast('위치 권한이 거부되었습니다.'),{enableHighAccuracy:true,timeout:8000});
 }

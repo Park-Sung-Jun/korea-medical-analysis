@@ -89,6 +89,9 @@ def pick_sample(feats):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--full", action="store_true")
+    ap.add_argument("--slot", default=None,
+                    help="시간슬롯 라벨(예: weekday_am, weekday_pm, weekday_eve, weekend). "
+                         "지정 시 data/tmap_slots/<slot>.csv 로 저장 — 다시간대 수집용.")
     args = ap.parse_args()
 
     okey, tkey = ors_key(), tmap_key()
@@ -130,7 +133,12 @@ def main():
               f"ORS {ors_sec/60:.1f}분 → TMAP {tmap_sec/60:.1f}분 (×{ratio:.2f}) [{h['name']}]")
         time.sleep(SLEEP)
 
-    out = DATA / ("tmap_xcheck_full.csv" if args.full else "tmap_xcheck_sample.csv")
+    if args.slot:
+        slot_dir = DATA / "tmap_slots"
+        slot_dir.mkdir(exist_ok=True)
+        out = slot_dir / f"{args.slot}.csv"
+    else:
+        out = DATA / ("tmap_xcheck_full.csv" if args.full else "tmap_xcheck_sample.csv")
     if rows:
         with out.open("w", encoding="utf-8-sig", newline="") as fp:
             w = csv.DictWriter(fp, fieldnames=list(rows[0].keys()))
