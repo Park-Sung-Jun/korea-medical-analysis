@@ -75,6 +75,18 @@
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:28px}
   .src{font-size:12.5px;color:var(--muted)}
   .src li{margin:5px 0}
+  .vvi-controls{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:6px 0 12px}
+  .vvi-w{display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--muted)}
+  .vvi-w input[type=range]{width:100%;accent-color:var(--accent)}
+  .vvi-w output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink)}
+  .vvi-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+  .vvi-chk{font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+  .btn-mini{border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 12px;
+    font-size:12px;font-family:inherit;cursor:pointer;color:#111}
+  .btn-mini:hover{background:var(--soft)}
+  .gen-link{font-size:11px;color:#0969da;text-decoration:none;white-space:nowrap;margin-left:4px}
+  .gen-link:hover{text-decoration:underline}
+  @media(max-width:880px){ .vvi-controls{grid-template-columns:repeat(2,1fr)} }
   footer{padding:34px 0 60px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
   @media(max-width:880px){
     .kpis{grid-template-columns:repeat(2,1fr)}
@@ -90,9 +102,11 @@
   <nav>
     <a href="#kpi">핵심지표</a>
     <a href="#triple">삼중취약지</a>
+    <a href="#priority">우선순위(VVI)</a>
     <a href="#elderly">고령인구</a>
     <a href="#map">지도</a>
     <a href="#supply">의료공급</a>
+    <a href="#emergency">응급의료</a>
     <a href="#checkup">검진 수검률</a>
     <a href="#health">질환부담</a>
     <a href="#traffic">교통검증</a>
@@ -129,6 +143,38 @@
       </tr></thead>
       <tbody></tbody>
     </table>
+    <p class="src" style="margin-top:8px">행의 <b>합성데이터 ↗</b>를 누르면 해당 시군구의 가상 검진 데이터를 생성기에서 바로 만듭니다.</p>
+  </section>
+
+  <section id="priority" class="reveal">
+    <h2>의료취약 우선순위 종합점수(VVI) — “그래서 어디부터?”</h2>
+    <p class="sub">접근성·고령규모·2차공급·질환부담·미수검을 0–100으로 정규화해 가중합한 종합 취약지수.
+       슬라이더로 정책 우선순위를 직접 조절하세요. 섬·도로미연결(접근시간 과대)은 별도 표기·제외합니다.</p>
+    <div class="vvi-controls" id="vviControls"></div>
+    <div class="vvi-toolbar">
+      <div class="seg" id="vviAccessSeg">
+        <button data-acc="ors" class="on">자유흐름(ORS)</button>
+        <button data-acc="tmap">교통반영(TMAP)</button>
+      </div>
+      <label class="vvi-chk"><input type="checkbox" id="vviIncludeIsland" /> 섬·과대추정 포함</label>
+      <span class="spacer" style="flex:1"></span>
+      <button type="button" class="btn-mini" id="vviExport">CSV 내보내기</button>
+    </div>
+    <table id="vviTbl">
+      <thead><tr>
+        <th data-k="rank" class="num">#</th><th data-k="sido">시도</th><th data-k="name">시군구</th>
+        <th data-k="vvi" class="num">VVI</th>
+        <th data-k="access" class="num">접근(분)</th>
+        <th data-k="aging_index" class="num">고령화지수</th>
+        <th data-k="elderly_pop" class="num">고령인구</th>
+        <th data-k="hosp_gen_cnt" class="num">종합병원</th>
+        <th data-k="disease_rate" class="num">유질환율</th>
+        <th data-k="checkup_rate" class="num">수검률</th>
+        <th></th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="note" id="vviNote"></p>
   </section>
 
   <section id="elderly" class="reveal">
@@ -172,6 +218,23 @@
           <tbody></tbody>
         </table>
       </div>
+    </div>
+  </section>
+
+  <section id="emergency" class="reveal">
+    <h2>응급의료 접근성 — 골든타임의 지도</h2>
+    <p class="sub">상급종합(48곳)과 달리 응급은 <b>분 단위</b>가 생사를 가른다. E-Gen(국립중앙의료원) 전국 응급의료기관을
+       받아 시군구 대표점→최근접 기관 운전시간을 ORS Matrix로 실측했다. 지도의 <b>응급 접근성</b> 뷰와 연동.</p>
+    <div class="corr" id="erCorr"></div>
+    <div class="grid2">
+      <div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px">지정 응급의료기관까지 30분 초과 시군구</div>
+        <table id="erTbl">
+          <thead><tr><th>시도</th><th>시군구</th><th class="num">최근접 지정기관(분)</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div><div class="note" id="erNote" style="margin-top:30px"></div></div>
     </div>
   </section>
 
@@ -273,7 +336,30 @@
 
 <script>
 const fmt = (n,d=0)=> n==null?'-':Number(n).toLocaleString('ko-KR',{maximumFractionDigits:d});
-let S=null;
+let S=null, SGG=null;
+
+// 합성데이터 생성기 딥링크(시군구 코드 → 해당 지역 사전선택)
+const GEN_BASE='https://hc-mkdata.tms-ai-lab.com';
+function genLink(code){ return GEN_BASE+'/?sigungu='+encodeURIComponent(code); }
+function genBtn(code){
+  return code? `<a class="gen-link" href="${genLink(code)}" target="_blank" rel="noopener" title="이 시군구 합성 검진데이터 생성">합성데이터 ↗</a>` : '';
+}
+// report_stats 행(코드 없음)을 SGG에서 시도+이름으로 코드 조인
+function sggCode(sido,name){
+  if(!SGG) return null;
+  const m=SGG.find(p=>p.sido===sido && p.name===name);
+  return m? m.code : null;
+}
+// 범용 CSV 내보내기(배열 of object → 다운로드)
+function exportCsv(rows, cols, filename){
+  const head=cols.map(c=>c.label).join(',');
+  const esc=v=>{ v=(v==null?'':String(v)); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+  const body=rows.map(r=>cols.map(c=>esc(r[c.key])).join(',')).join('\n');
+  const blob=new Blob(['﻿'+head+'\n'+body],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
 
 function countUp(el,target,dur=900,suffix=''){
   const start=performance.now(), from=0;
@@ -301,11 +387,11 @@ function kpiCards(){
 
 function tripleTable(){
   const tb=document.querySelector('#tripleTbl tbody');
-  let data=S.triple_vulnerable.map((r,i)=>({idx:i+1,...r}));
+  let data=S.triple_vulnerable.map((r,i)=>({idx:i+1,code:sggCode(r.sido,r.name),...r}));
   function render(){
     tb.innerHTML=data.map(r=>`<tr class="${r.suspect?'susp':''}">
       <td class="num">${r.idx}</td><td>${r.sido||''}</td>
-      <td>${r.name}${r.suspect?' <span class="pill">섬·과대</span>':''}</td>
+      <td>${r.name}${r.suspect?' <span class="pill">섬·과대</span>':''} ${genBtn(r.code)}</td>
       <td class="num">${fmt(r.access_min,1)}</td>
       <td class="num">${fmt(r.aging_index)}</td>
       <td class="num">${fmt(r.elderly_pop)}명</td>
@@ -318,6 +404,96 @@ function tripleTable(){
       return (typeof x==='number'?x-y:String(x).localeCompare(y))*(asc?1:-1);});
     render();
   });
+}
+
+// ---------- 의료취약 우선순위 종합점수(VVI) ----------
+const VVI_WEIGHTS=[
+  {key:'access', label:'접근성(멀수록↑)', w:30},
+  {key:'elderly', label:'고령인구 규모', w:25},
+  {key:'supply', label:'2차공급 부족', w:20},
+  {key:'disease', label:'질환부담', w:15},
+  {key:'checkup', label:'미수검', w:10},
+];
+let vviAccessMode='ors';
+function vviView(){
+  if(!SGG){ const s=document.getElementById('priority'); if(s)s.style.display='none'; return; }
+  // 컨트롤(가중치 슬라이더)
+  document.getElementById('vviControls').innerHTML=VVI_WEIGHTS.map(d=>
+    `<label class="vvi-w"><span>${d.label}</span>
+      <input type="range" min="0" max="100" step="5" value="${d.w}" data-wk="${d.key}">
+      <output data-wo="${d.key}">${d.w}</output></label>`).join('');
+  function isIsland(p){ return (p.access_min_ors_exact!=null?p.access_min_ors_exact:p.access_min)>=200; }
+  function compute(){
+    const incl=document.getElementById('vviIncludeIsland').checked;
+    const accKey=vviAccessMode==='tmap'?'access_min_tmap':'access_min';
+    let pool=SGG.filter(p=>incl||!isIsland(p));
+    // 각 지표 min-max 정규화 → 취약도(높을수록 취약)
+    const acc=pool.map(p=>p[accKey]||0);
+    const eld=pool.map(p=>p.elderly_pop||0);
+    const sup=pool.map(p=>-(p.hosp_gen_cnt||0));            // 적을수록 취약 → 부호반전
+    const dis=pool.map(p=>p.disease_rate||0);
+    const chk=pool.map(p=>-(p.checkup_rate||0));            // 낮을수록 취약 → 부호반전
+    const nz=(arr)=>{const lo=Math.min(...arr),hi=Math.max(...arr),r=(hi-lo)||1;return arr.map(v=>(v-lo)/r);};
+    const N={access:nz(acc),elderly:nz(eld),supply:nz(sup),disease:nz(dis),checkup:nz(chk)};
+    const W={}; let wsum=0;
+    VVI_WEIGHTS.forEach(d=>{const v=+document.querySelector(`[data-wk="${d.key}"]`).value; W[d.key]=v; wsum+=v;});
+    wsum=wsum||1;
+    const rows=pool.map((p,i)=>{
+      let s=0; VVI_WEIGHTS.forEach(d=>{s+=W[d.key]*N[d.key][i];});
+      return {code:p.code,name:p.name,sido:p.sido,island:isIsland(p),
+        vvi:Math.round(s/wsum*1000)/10,
+        access:p[accKey],aging_index:p.aging_index,elderly_pop:p.elderly_pop,
+        hosp_gen_cnt:p.hosp_gen_cnt,disease_rate:p.disease_rate,checkup_rate:p.checkup_rate};
+    }).sort((a,b)=>b.vvi-a.vvi);
+    rows.forEach((r,i)=>r.rank=i+1);
+    return rows;
+  }
+  let current=[];
+  function render(){
+    current=compute();
+    const top=current.slice(0,30);
+    document.querySelector('#vviTbl tbody').innerHTML=top.map(r=>`<tr class="${r.island?'susp':''}">
+      <td class="num">${r.rank}</td><td>${r.sido}</td>
+      <td>${r.name}${r.island?' <span class="pill">섬·과대</span>':''} ${genBtn(r.code)}</td>
+      <td class="num"><b>${fmt(r.vvi,1)}</b></td>
+      <td class="num">${fmt(r.access,1)}</td><td class="num">${fmt(r.aging_index)}</td>
+      <td class="num">${fmt(r.elderly_pop)}</td><td class="num">${fmt(r.hosp_gen_cnt)}</td>
+      <td class="num">${fmt(r.disease_rate,1)}%</td><td class="num">${fmt(r.checkup_rate,1)}%</td>
+      <td>${genBtn(r.code)}</td></tr>`).join('');
+    document.getElementById('vviNote').innerHTML=
+      `상위 30곳 표시(전체 ${current.length}곳). VVI는 선택 가중치 기준 0–100 상대지표로, '객관적 1위'가 아니라
+       <b>가중치 시뮬레이션</b>입니다. 접근축=${vviAccessMode==='tmap'?'교통반영(TMAP)':'자유흐름(ORS)'}.
+       섬·도로미연결(접근≥200분)은 ${document.getElementById('vviIncludeIsland').checked?'포함됨':'제외'}.`;
+  }
+  // 가중치 슬라이더
+  document.getElementById('vviControls').addEventListener('input',e=>{
+    if(e.target.dataset.wk){ document.querySelector(`[data-wo="${e.target.dataset.wk}"]`).textContent=e.target.value; render(); }
+  });
+  // 접근축 토글
+  document.querySelectorAll('#vviAccessSeg button').forEach(btn=>btn.onclick=()=>{
+    vviAccessMode=btn.dataset.acc;
+    document.querySelectorAll('#vviAccessSeg button').forEach(b=>b.classList.toggle('on',b===btn));
+    render();
+  });
+  document.getElementById('vviIncludeIsland').addEventListener('change',render);
+  // 정렬(헤더 클릭)
+  document.querySelectorAll('#vviTbl th').forEach(th=>{ if(!th.dataset.k)return; th.onclick=()=>{
+    const k=th.dataset.k, asc=th._asc=!th._asc;
+    current.sort((a,b)=>{const x=a[k],y=b[k];return (typeof x==='number'?x-y:String(x).localeCompare(y))*(asc?1:-1);});
+    document.querySelector('#vviTbl tbody').innerHTML=current.slice(0,30).map(r=>`<tr class="${r.island?'susp':''}">
+      <td class="num">${r.rank}</td><td>${r.sido}</td><td>${r.name}${r.island?' <span class="pill">섬·과대</span>':''} ${genBtn(r.code)}</td>
+      <td class="num"><b>${fmt(r.vvi,1)}</b></td><td class="num">${fmt(r.access,1)}</td><td class="num">${fmt(r.aging_index)}</td>
+      <td class="num">${fmt(r.elderly_pop)}</td><td class="num">${fmt(r.hosp_gen_cnt)}</td>
+      <td class="num">${fmt(r.disease_rate,1)}%</td><td class="num">${fmt(r.checkup_rate,1)}%</td><td>${genBtn(r.code)}</td></tr>`).join('');
+  };});
+  // CSV 내보내기(전체 순위)
+  document.getElementById('vviExport').onclick=()=>exportCsv(current,
+    [{key:'rank',label:'순위'},{key:'sido',label:'시도'},{key:'name',label:'시군구'},{key:'code',label:'코드'},
+     {key:'vvi',label:'VVI'},{key:'access',label:'접근분'},{key:'aging_index',label:'고령화지수'},
+     {key:'elderly_pop',label:'고령인구'},{key:'hosp_gen_cnt',label:'종합병원'},
+     {key:'disease_rate',label:'유질환율'},{key:'checkup_rate',label:'수검률'},{key:'island',label:'섬과대'}],
+    'medical_vulnerability_index.csv');
+  render();
 }
 
 function supply(){
@@ -375,7 +551,7 @@ function ohcaCorr(){
      시도(n=${o.n}) 해상도라 시군구 격차가 희석된다 — 접근성의 엄밀한 검증은 시군구 단위 생존율(질병관리청 급성심장정지조사)이 필요하다.`;
 }
 
-let C=null, H=null;
+let C=null, H=null, E=null;
 function checkupView(){
   if(!C)return;
   const rAcc=C.corr['access_min(ORS)'].r, rAge=C.corr.aging_index.r, rEld=C.corr.elderly_share.r;
@@ -427,6 +603,25 @@ function healthView(){
      <b>가장 아픈 곳이 검진을 가장 덜 받는</b> ‘역돌봄(inverse care)’ 구조다. 접근성과도 양(+)의 상관(질환↑ where 접근↓) —
      <b>고령·질환·저수검·접근불리가 같은 시군구에 겹친다.</b> 우선순위 자원배분의 근거다.`;
   cancerView();
+}
+function erView(){
+  if(!E)return;
+  const fc=E.facility_counts||{};
+  document.getElementById('erCorr').innerHTML=`
+    <div class="c"><b style="color:var(--accent)">${E.er.median}분</b><span>최근접 지정기관 중앙값 (n=${E.designated_n})</span></div>
+    <div class="c"><b>${E.er_center.median}분</b><span>센터급(권역+지역센터 ${E.center_n}) 중앙값</span></div>
+    <div class="c"><b>${E.er.over30_n}곳</b><span>지정기관 30분 초과 시군구</span></div>
+    <div class="c"><b>+${E.corr.er_center_vs_tertiary}</b><span>센터급 vs 상급종합 접근성 상관</span></div>`;
+  document.querySelector('#erTbl tbody').innerHTML=(E.er.over30||[]).slice(0,10).map(r=>
+    `<tr><td>${r.sido||''}</td><td>${r.name}</td><td class="num">${r.min}분</td></tr>`).join('');
+  document.getElementById('erNote').innerHTML=
+    `전국 응급의료기관 ${E.designated_n+ (fc['응급실운영신고기관']||0)}곳 중 법정 지정기관은 ${E.designated_n}곳
+     (권역응급의료센터 ${fc['권역응급의료센터']||0} · 지역응급의료센터 ${fc['지역응급의료센터']||0} · 지역응급의료기관 ${fc['지역응급의료기관']||0}).
+     기초 응급 대응(지정기관)은 중앙값 ${E.er.median}분으로 양호하지만, <b>중증응급</b>을 받는 센터급은 중앙값 ${E.er_center.median}분,
+     <b>30분 초과 ${E.er_center.over30_n}곳 · 60분 초과 ${E.er_center.over60_n}곳</b>이다.
+     센터급 접근성은 상급종합 접근성과 강하게 겹쳐(r=+${E.corr.er_center_vs_tertiary}) —
+     <b>상급종합 사각지대는 대체로 중증응급 사각지대이기도 하다.</b>
+     30분 초과 지역은 섬·접경·내륙산간에 몰려 있어 닥터헬기·이송체계가 사실상 유일한 보완책이다.`;
 }
 function cancerView(){
   const ca=H&&H.indicators&&H.indicators.cancer_rate; if(!ca)return;
@@ -581,8 +776,10 @@ function deepLinks(){
     '<div style="padding:20px;color:#dc2626">report_stats.json 로드 실패 — 로컬 서버로 여세요 (python -m http.server).</div>'); return; }
   try{ C=await (await fetch('data/checkup_stats.json')).json(); }catch(e){ C=null; }
   try{ H=await (await fetch('data/health_indicator_stats.json')).json(); }catch(e){ H=null; }
-  kpiCards(); tripleTable(); supply(); elderlyView(); checkupView(); healthView(); trafficView(); ohcaCorr();
-  bubbleChart(); splitCharts(); wireSeg(); reveals(); deepLinks();
+  try{ E=await (await fetch('data/emergency_stats.json')).json(); }catch(e){ E=null; }
+  try{ SGG=(await (await fetch('data/sigungu_bivariate.geojson')).json()).features.map(f=>f.properties); }catch(e){ SGG=null; }
+  kpiCards(); tripleTable(); supply(); elderlyView(); checkupView(); healthView(); erView(); trafficView(); ohcaCorr();
+  bubbleChart(); splitCharts(); wireSeg(); reveals(); deepLinks(); vviView();
 })();
 </script>
 </body>

@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>상급종합병원 접근성 · 고령화 지도</title>
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet"
       integrity="sha384-MinO0mNliZ3vwppuPOUnGa+iq619pfMhLVUXfC4LHwSCvF9H+6P/KO4Q7qBOYV5V"
@@ -67,6 +67,27 @@
   .pop-k{color:var(--muted)}.pop-v{font-weight:600}.pop-row{font-size:12px;margin-top:2px}
   .toast{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:12;background:#111;color:#fff;font-size:12px;
     padding:7px 12px;border-radius:8px;display:none;max-width:80%}
+  .search-box{position:relative}
+  .search-box input{width:170px;font-family:inherit;font-size:12.5px;padding:6px 9px;
+    border:1px solid var(--line);border-radius:7px;background:#fff;color:#111}
+  .search-list{position:absolute;top:36px;right:0;width:240px;max-height:300px;overflow:auto;
+    background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.10);z-index:20}
+  .s-item{padding:7px 10px;font-size:12.5px;cursor:pointer;border-bottom:1px solid #f1f3f5}
+  .s-item:hover{background:#f8f9fa}
+  .s-t{color:var(--muted);font-size:11px;float:right}
+  .s-empty{padding:8px 10px;font-size:12px;color:var(--muted)}
+  .ctrl-btn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:5px 8px;
+    font-size:11.5px;font-family:inherit;cursor:pointer;color:#111}
+  .ctrl-btn:hover{background:#f8f9fa}
+  @media(max-width:720px){
+    .topbar{flex-wrap:wrap;height:auto;flex:0 0 auto;padding:8px 12px;gap:8px}
+    .topbar h1{font-size:13px;flex-basis:100%}
+    .seg{flex-wrap:wrap}.seg button{padding:6px 9px;font-size:11.5px}
+    .search-box input{width:130px}.badge{display:none}
+    .ctrl{min-width:0;width:150px;right:8px;top:8px;padding:8px}
+    .sim{max-width:190px;left:8px;top:8px}.pyramid{display:none!important}
+    .legend{left:8px;bottom:8px;max-width:200px}
+  }
 </style>
 </head>
 <body>
@@ -79,10 +100,16 @@
       <button data-view="aging">고령화지수</button>
       <button data-view="checkup">건강검진 수검률</button>
       <button data-view="cancer">암검진 수검률</button>
+      <button data-view="er">응급 접근성</button>
       <button data-view="disease">유질환자율</button>
       <button data-view="metabolic">대사증후군</button>
     </div>
     <span class="spacer"></span>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="시군구·병원 검색" autocomplete="off"
+             aria-label="시군구 또는 병원 검색" />
+      <div class="search-list" id="searchList" hidden></div>
+    </div>
     <span class="badge" id="badge-hosp">병원 48개소 · 제5기+α</span>
   </div>
   <div id="map">
@@ -112,6 +139,10 @@
         <label class="chk"><input type="checkbox" id="toggle-pyramid" /> 인구 피라미드(시군구 호버)</label>
         <label class="chk"><input type="checkbox" id="toggle-traffic" /> 교통반영 접근성(바이베리엇)</label>
         <div class="op"><span>채움 투명도</span><input type="range" id="opacity" min="20" max="95" value="60" /></div>
+        <div class="op" style="gap:6px;margin-top:9px">
+          <button type="button" id="myloc" class="ctrl-btn" title="내 위치 기준 최근접 상급종합병원">📍 내 위치 최근접</button>
+          <button type="button" id="exportCsv" class="ctrl-btn" title="현재 시군구 지표를 CSV로">⬇ CSV</button>
+        </div>
       </div>
     </div>
     <div class="panel legend" id="legend"></div>
@@ -135,6 +166,8 @@ const BIVAR={A1B1:'#e8e8e8',A1B2:'#dfb0d6',A1B3:'#be64ac',A2B1:'#ace4e4',A2B2:'#
 const AGING=['#fff7ec','#fdd49e','#fc8d59','#d7301f'];
 const CHECKUP={C1:'#b2182b',C2:'#f4a582',C3:'#2166ac'};   // 수검률(빨강=낮음·취약 → 파랑=높음)
 const SEVHI={C1:'#2166ac',C2:'#f4a582',C3:'#b2182b'};     // 질환부담(파랑=낮음 → 빨강=높음·취약)
+const ERB={B1:'#1a9850',B2:'#a6d96a',B3:'#fee08b',B4:'#d73027'};  // 응급 접근(≤10/≤20/≤30/>30분)
+const ERPT={'권역응급의료센터':'#7f0000','지역응급의료센터':'#d7301f','지역응급의료기관':'#737373'};
 const checkupMatch=['match',['get','checkup_class'],'C1',CHECKUP.C1,'C2',CHECKUP.C2,'C3',CHECKUP.C3,'#e8e8e8'];
 const classMatch=(field,pal)=>['match',['get',field+'_class'],'C1',pal.C1,'C2',pal.C2,'C3',pal.C3,'#e8e8e8'];
 const isoMatch=pal=>['match',['get','minutes'],15,pal[15],30,pal[30],45,pal[45],60,pal[60],'#ccc'];
@@ -177,6 +210,7 @@ async function loadData(){
   DATA.hospiso=await get('data/hospital_isochrones.geojson');
   const bv=await get('data/sigungu_bivariate.geojson');
   DATA.hasBivar=!!bv; DATA.sgg=bv||await get('data/sigungu.geojson');
+  DATA.emg=await get('data/emergency.geojson');
   PYR=await get('data/pop_pyramid.json');
 }
 
@@ -197,6 +231,8 @@ function addAppLayers(){
     paint:{'fill-color':checkupMatch,'fill-opacity':op}},before);
   if(DATA.sgg&&!map.getLayer('sgg-cancer'))map.addLayer({id:'sgg-cancer',type:'fill',source:'sgg',layout:{visibility:'none'},
     paint:{'fill-color':classMatch('cancer_rate',CHECKUP),'fill-opacity':op}},before);
+  if(DATA.sgg&&!map.getLayer('sgg-er'))map.addLayer({id:'sgg-er',type:'fill',source:'sgg',layout:{visibility:'none'},
+    paint:{'fill-color':['match',['get','er_class'],'B1',ERB.B1,'B2',ERB.B2,'B3',ERB.B3,'B4',ERB.B4,'#e8e8e8'],'fill-opacity':op}},before);
   if(DATA.sgg&&!map.getLayer('sgg-disease'))map.addLayer({id:'sgg-disease',type:'fill',source:'sgg',layout:{visibility:'none'},
     paint:{'fill-color':classMatch('disease_rate',SEVHI),'fill-opacity':op}},before);
   if(DATA.sgg&&!map.getLayer('sgg-metabolic'))map.addLayer({id:'sgg-metabolic',type:'fill',source:'sgg',layout:{visibility:'none'},
@@ -220,6 +256,19 @@ function addAppLayers(){
   if(DATA.sgg&&!map.getLayer('sgg-label'))map.addLayer({id:'sgg-label',type:'symbol',source:'sgg',minzoom:7.2,
     layout:{'text-field':['get','name'],'text-size':['interpolate',['linear'],['zoom'],7,9.5,10,12.5],'text-font':['Open Sans Regular'],'text-padding':4},
     paint:{'text-color':'#374151','text-halo-color':'#fff','text-halo-width':1.6}});
+  // 응급의료기관 포인트(응급 뷰 전용 · 신고기관 제외)
+  if(DATA.emg&&!map.getSource('emg'))map.addSource('emg',{type:'geojson',data:DATA.emg});
+  if(DATA.emg&&!map.getLayer('emg-pt')){
+    map.addLayer({id:'emg-pt',type:'circle',source:'emg',layout:{visibility:'none'},
+      filter:['in',['get','cls'],['literal',Object.keys(ERPT)]],
+      paint:{'circle-radius':['interpolate',['linear'],['zoom'],
+        6,['match',['get','cls'],'권역응급의료센터',4.5,'지역응급의료센터',3.2,2.2],
+        10,['match',['get','cls'],'권역응급의료센터',8,'지역응급의료센터',6,4.5]],
+        'circle-color':['match',['get','cls'],'권역응급의료센터',ERPT['권역응급의료센터'],'지역응급의료센터',ERPT['지역응급의료센터'],ERPT['지역응급의료기관']],
+        'circle-stroke-color':'#fff','circle-stroke-width':1}});
+    map.addLayer({id:'emg-label',type:'symbol',source:'emg',minzoom:9,layout:{visibility:'none',
+      'text-field':['get','name'],'text-size':10.5,'text-offset':[0,1.0],'text-anchor':'top','text-font':['Open Sans Regular']},
+      paint:{'text-color':'#7f1d1d','text-halo-color':'#fff','text-halo-width':1.4}});}
   // 병원 포인트
   if(DATA.hosp&&!map.getLayer('hosp-pt')){
     map.addLayer({id:'hosp-sel',type:'circle',source:'hosp',filter:['==',['get','id'],-1],
@@ -234,9 +283,10 @@ function addAppLayers(){
 function setVis(id,v){if(map.getLayer(id))map.setLayoutProperty(id,'visibility',v?'visible':'none');}
 
 function applyView(){
-  const isoOn=view==='iso',agingOn=view==='aging',bivOn=view==='bivar',chkOn=view==='checkup',disOn=view==='disease',metOn=view==='metabolic',canOn=view==='cancer';
+  const isoOn=view==='iso',agingOn=view==='aging',bivOn=view==='bivar',chkOn=view==='checkup',disOn=view==='disease',metOn=view==='metabolic',canOn=view==='cancer',erOn=view==='er';
   setVis('iso-fill',isoOn);setVis('iso-line',isoOn);setVis('sgg-aging',agingOn);setVis('sgg-bivar',bivOn);
   setVis('sgg-checkup',chkOn);setVis('sgg-disease',disOn);setVis('sgg-metabolic',metOn);setVis('sgg-cancer',canOn);
+  setVis('sgg-er',erOn);setVis('emg-pt',erOn);setVis('emg-label',erOn);
   renderLegend();
 }
 function applySggToggle(){const on=document.getElementById('toggle-sgg').checked;
@@ -272,6 +322,12 @@ function renderLegend(){
   else if(view==='checkup'){h=`<h2>일반건강검진 수검률 (2024)</h2>
     ${row(CHECKUP.C1,'하위 ⅓ · 낮음(취약)')}${row(CHECKUP.C2,'중간 ⅓')}${row(CHECKUP.C3,'상위 ⅓ · 높음')}
     <div class="note">전국 75.6% · 시군구 66~83%<br/>접근성과 <b>약상관</b>(r −0.21), 고령화와 <b>강상관</b>(r −0.62)<br/>KOSIS 국민건강검진 · 성별 합계</div>`;}
+  else if(view==='er'){h=`<h2>응급의료기관 접근성 (최근접 운전시간)</h2>
+    ${row(ERB.B1,'≤10분')}${row(ERB.B2,'10–20분')}${row(ERB.B3,'20–30분')}${row(ERB.B4,'30분 초과 · 취약')}
+    <div class="row" style="margin-top:6px"><span class="sw" style="background:${ERPT['권역응급의료센터']};border-radius:50%"></span>권역응급의료센터
+    &nbsp;<span class="sw" style="background:${ERPT['지역응급의료센터']};border-radius:50%"></span>지역센터
+    &nbsp;<span class="sw" style="background:${ERPT['지역응급의료기관']};border-radius:50%"></span>지역기관</div>
+    <div class="note">법정 지정 응급의료기관 418곳(신고기관 제외) 기준<br/>E-Gen(국립중앙의료원) · ORS Matrix 실측</div>`;}
   else if(view==='cancer'){h=`<h2>암검진 수검률 (2024)</h2>
     ${row(CHECKUP.C1,'하위 ⅓ · 낮음(취약)')}${row(CHECKUP.C2,'중간 ⅓')}${row(CHECKUP.C3,'상위 ⅓ · 높음')}
     <div class="note">전국 60.2% · 시군구 51~68%<br/>일반검진과 r +0.73 동행 · 고령화 r −0.46(일반검진보다 약함)<br/>암검진별 계 · 수검/대상인원 · KOSIS</div>`;}
@@ -372,6 +428,7 @@ function wireInteractions(){
     h+=pr('고령화지수', p.aging_index??'-');
     h+=pr('건강검진 수검률', p.checkup_rate!=null?p.checkup_rate+'%'+(p.checkup_type?` <span style="color:#dc2626">·${p.checkup_type}</span>`:''):'-');
     h+=pr('암검진 수검률', p.cancer_rate!=null?p.cancer_rate+'%':'-');
+    h+=pr('최근접 응급기관', p.er_min!=null?p.er_min+'분'+(p.er_center_min!=null?` <span style="color:#6b7280">· 센터급 ${p.er_center_min}분</span>`:''):'-');
     h+=pr('유질환자율', p.disease_rate!=null?p.disease_rate+'%':'-');
     h+=pr('대사증후군 위험', p.metabolic_rate!=null?p.metabolic_rate+'%':'-');
     h+=pr('관내 상급종합', (p.hosp_sup_cnt??0)+'개');
@@ -383,7 +440,7 @@ function wireInteractions(){
 
 /* ---------- 이벤트 ---------- */
 document.getElementById('view-seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
-  document.querySelectorAll('#view-seg button').forEach(x=>x.classList.toggle('on',x===b));view=b.dataset.view;applyView();});
+  document.querySelectorAll('#view-seg button').forEach(x=>x.classList.toggle('on',x===b));view=b.dataset.view;applyView();scheduleWriteUrl();});
 document.getElementById('basemap').addEventListener('change',e=>{const st=basemapStyle(e.target.value);
   if(!st){toast('VWorld 키가 없습니다. config.js에 vworld 키를 넣고 도메인을 등록하세요.');e.target.value='carto-positron';return;}
   map.setStyle(st);
@@ -394,21 +451,124 @@ document.getElementById('toggle-hosp').addEventListener('change',applyHospToggle
 document.getElementById('toggle-traffic').addEventListener('change',applyTraffic);
 document.getElementById('toggle-pyramid').addEventListener('change',e=>{if(!e.target.checked)document.getElementById('pyramid').style.display='none';});
 document.getElementById('opacity').addEventListener('input',e=>{const o=+e.target.value/100;
-  ['iso-fill','sgg-aging','sgg-bivar','sgg-checkup','sgg-cancer','sgg-disease','sgg-metabolic'].forEach(l=>{if(map.getLayer(l))map.setPaintProperty(l,'fill-opacity',o);});});
+  ['iso-fill','sgg-aging','sgg-bivar','sgg-checkup','sgg-cancer','sgg-disease','sgg-metabolic','sgg-er'].forEach(l=>{if(map.getLayer(l))map.setPaintProperty(l,'fill-opacity',o);});});
 document.getElementById('sim-clear').addEventListener('click',clearCoverage);
+
+/* ---------- URL 상태 저장/복원 (뷰·중심·줌 공유) ---------- */
+let _urlTimer=null;
+function writeUrl(){
+  if(!map)return;
+  const c=map.getCenter();
+  const q=new URLSearchParams();
+  q.set('v',view);
+  q.set('ll',c.lng.toFixed(4)+','+c.lat.toFixed(4));
+  q.set('z',map.getZoom().toFixed(2));
+  history.replaceState(null,'','#'+q.toString());
+}
+function scheduleWriteUrl(){clearTimeout(_urlTimer);_urlTimer=setTimeout(writeUrl,400);}
+function readUrl(){
+  const h=location.hash.replace(/^#/,''); if(!h)return null;
+  const q=new URLSearchParams(h); const out={};
+  if(q.get('v'))out.view=q.get('v');
+  if(q.get('ll')){const[a,b]=q.get('ll').split(',').map(Number);if(isFinite(a)&&isFinite(b))out.center=[a,b];}
+  if(q.get('z')&&isFinite(+q.get('z')))out.zoom=+q.get('z');
+  return out;
+}
+
+/* ---------- 검색(시군구·병원) + 점프 ---------- */
+function searchIndex(){
+  const items=[];
+  (DATA.sgg&&DATA.sgg.features||[]).forEach(f=>{const p=f.properties;
+    items.push({type:'시군구',name:(p.sido?p.sido+' ':'')+p.name,code:p.code,feature:f});});
+  (DATA.hosp&&DATA.hosp.features||[]).forEach(f=>{const p=f.properties;
+    items.push({type:'병원',name:p.name||p.yadmNm||'병원',feature:f});});
+  return items;
+}
+function centroid(geom){
+  if(geom.type==='Point')return geom.coordinates;
+  let xs=0,ys=0,k=0;const walk=cs=>{cs.forEach(c=>{if(typeof c[0]==='number'){xs+=c[0];ys+=c[1];k++;}else walk(c);});};
+  walk(geom.coordinates);return k?[xs/k,ys/k]:[127.8,36.3];
+}
+function wireSearch(){
+  const inp=document.getElementById('searchInput'),list=document.getElementById('searchList');
+  if(!inp)return;
+  let idx=null;
+  function ensure(){if(!idx)idx=searchIndex();return idx;}
+  inp.addEventListener('input',()=>{
+    const q=inp.value.trim().toLowerCase();
+    if(q.length<1){list.hidden=true;return;}
+    const hits=ensure().filter(it=>it.name.toLowerCase().includes(q)).slice(0,8);
+    list.innerHTML=hits.map((h,i)=>`<div class="s-item" data-i="${i}"><b>${h.name}</b> <span class="s-t">${h.type}</span></div>`).join('')||'<div class="s-empty">결과 없음</div>';
+    list._hits=hits;list.hidden=false;
+  });
+  list.addEventListener('click',e=>{const it=e.target.closest('.s-item');if(!it)return;
+    const h=list._hits[+it.dataset.i];if(!h)return;
+    const c=centroid(h.feature.geometry);
+    map.flyTo({center:c,zoom:h.type==='병원'?11:9.5});
+    list.hidden=true;inp.value=h.name;
+    if(h.type==='시군구'&&h.code)renderPyramid(String(h.code));
+  });
+  document.addEventListener('click',e=>{if(!e.target.closest('.search-box'))list.hidden=true;});
+}
+
+/* ---------- 현재 뷰 CSV 내보내기 ---------- */
+function exportViewCsv(){
+  if(!DATA.sgg)return;
+  const cols=[['code','코드'],['sido','시도'],['name','시군구'],['access_min','접근분ORS'],
+    ['access_min_tmap','접근분TMAP'],['aging_index','고령화지수'],['elderly_pop','고령인구'],
+    ['hosp_gen_cnt','종합병원'],['hosp_sup_cnt','상급종합'],['checkup_rate','건강검진수검률'],
+    ['cancer_rate','암검진수검률'],['disease_rate','유질환율'],['metabolic_rate','대사증후군'],
+    ['er_min','응급접근분'],['pop_total','총인구']];
+  const esc=v=>{v=(v==null?'':String(v));return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  const head=cols.map(c=>c[1]).join(',');
+  const body=DATA.sgg.features.map(f=>cols.map(c=>esc(f.properties[c[0]])).join(',')).join('\n');
+  const blob=new Blob(['﻿'+head+'\n'+body],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='sigungu_medical_indicators.csv';document.body.appendChild(a);a.click();
+  document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+
+/* ---------- 내 위치 → 최근접 상급종합병원 ---------- */
+function myNearestHospital(){
+  if(!navigator.geolocation){toast('이 브라우저는 위치 기능을 지원하지 않습니다.');return;}
+  if(!DATA.hosp){toast('병원 데이터가 없습니다.');return;}
+  toast('위치 확인 중…');
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const me=[pos.coords.longitude,pos.coords.latitude];
+    const hav=(a,b)=>{const R=6371,dl=(b[1]-a[1])*Math.PI/180,dn=(b[0]-a[0])*Math.PI/180,
+      la1=a[1]*Math.PI/180,la2=b[1]*Math.PI/180;
+      const x=Math.sin(dl/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dn/2)**2;
+      return 2*R*Math.asin(Math.sqrt(x));};
+    let best=null,bd=1e9;
+    DATA.hosp.features.forEach(f=>{const d=hav(me,f.geometry.coordinates);if(d<bd){bd=d;best=f;}});
+    if(!best){toast('병원을 찾지 못했습니다.');return;}
+    map.flyTo({center:best.geometry.coordinates,zoom:10});
+    if(best.properties&&best.properties.id!=null){selHosp=best.properties.id;applyCoverage();}
+    toast(`최근접: ${best.properties.name||'상급종합병원'} (직선 ${bd.toFixed(1)}km)`);
+  },()=>toast('위치 권한이 거부되었습니다.'),{enableHighAccuracy:true,timeout:8000});
+}
 
 (async()=>{
   await loadData();
+  const u=readUrl();
+  if(u&&u.view)view=u.view;
   map=new maplibregl.Map({container:'map',style:basemapStyle('carto-positron'),
-    center:[127.8,36.3],zoom:6.4,minZoom:5,maxZoom:14,
+    center:(u&&u.center)||[127.8,36.3],zoom:(u&&u.zoom)||6.4,minZoom:5,maxZoom:14,
+    preserveDrawingBuffer:true,
     localIdeographFontFamily:"'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"});
   window.map=map;
   map.addControl(new maplibregl.NavigationControl({showCompass:false}),'bottom-right');
   map.addControl(new maplibregl.FullscreenControl({container:document.getElementById('app')}),'bottom-right');
   map.addControl(new maplibregl.ScaleControl({maxWidth:120,unit:'metric'}),'bottom-right');
   map.on('style.load',addAppLayers);
+  map.on('moveend',scheduleWriteUrl);
   window.addEventListener('resize',()=>{if(pyChart)pyChart.resize();});
   wireInteractions();
+  wireSearch();
+  document.getElementById('exportCsv').addEventListener('click',exportViewCsv);
+  document.getElementById('myloc').addEventListener('click',myNearestHospital);
+  // URL의 view를 토글 버튼에도 반영
+  document.querySelectorAll('#view-seg button').forEach(x=>x.classList.toggle('on',x.dataset.view===view));
   const n=DATA.hosp&&DATA.hosp.features?DATA.hosp.features.length:0;
   if(n)document.getElementById('badge-hosp').textContent=`병원 ${n}개소 · 제5기+α`;
 })();
