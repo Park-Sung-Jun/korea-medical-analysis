@@ -1,10 +1,15 @@
 {
   "meta": {
-    "title": "제5기 상급종합병원(3차병원) 47개소",
-    "period": "2024.1.1 ~ 2026.12.31",
-    "source": "보건복지부 제5기 상급종합병원 지정 기관현황",
+    "title": "제5기 상급종합병원 공식 지정 기관",
+    "period": "2024-01-01~2026-12-31",
+    "source": "보건복지부 제5기 상급종합병원 지정 결과",
     "note": "lat/lon은 시드 좌표. scripts/verify_coords.py(Nominatim)로 검증/보정.",
-    "geocoded": true
+    "geocoded": true,
+    "source_url": "https://www.mohw.go.kr/board.es?mid=a10503000000&bid=0027&act=view&list_no=1479568",
+    "count": 47,
+    "excluded_non_designated": [
+      "강원대학교병원"
+    ]
   },
   "hospitals": [
     {
@@ -429,15 +434,6 @@
       "query": "삼성창원병원 창원시 마산회원구",
       "lat": 35.24345,
       "lon": 128.5912
-    },
-    {
-      "id": 48,
-      "name": "강원대학교병원",
-      "region": "춘천시",
-      "sido": "강원",
-      "query": "강원대학교병원 춘천시 백령로 156",
-      "lat": 37.87498,
-      "lon": 127.7448
     }
   ]
 }

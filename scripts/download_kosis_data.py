@@ -9,7 +9,7 @@ import pandas as pd
 # Set output stream to UTF-8
 sys.stdout.reconfigure(encoding='utf-8')
 
-# Relative paths for portability inside isochrone_map
+# Relative paths for portability inside korea-medical-analysis
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TREE_PATH = os.path.join(SCRIPT_DIR, "kosis_tree.json")
 OUTPUT_DIR = os.path.join(SCRIPT_DIR, "..", "data")

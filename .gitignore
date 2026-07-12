@@ -1,7 +1,5 @@
-# node / playwright (개발 전용)
+# node / playwright (의존성 디렉터리만 제외; manifest는 CI 재현을 위해 추적)
 node_modules/
-package.json
-package-lock.json
 
 # 빌드 산출물
 dist/
@@ -28,6 +26,8 @@ synthetic/DEPLOY.md
 synthetic/__pycache__/
 
 # 대용량/파생 데이터 (정적 사이트에 불필요, 재생성 가능)
+data/*.next.*
+data/population.json
 data/pop_202512.json
 data/sigungu.geojson
 data/sigungu_try1.json

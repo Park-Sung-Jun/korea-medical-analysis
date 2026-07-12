@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>상급종합병원 접근성 · 고령화 지도</title>
+<title>대한민국 의료 접근성 분석 지도</title>
 <meta name="description" content="상급종합병원·응급의료기관 접근성, 고령화, 검진·질환 지표를 시군구 단위로 탐색하는 인터랙티브 지도." />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="의료취약지 지도 — 접근성 × 고령화 인터랙티브" />
-<meta property="og:description" content="등시선·접근성×고령화·응급의료·검진 수검률 뷰를 갖춘 전국 250개 시군구 인터랙티브 지도." />
-<meta property="og:url" content="https://korea-medical-access.vercel.app/map.html" />
-<meta property="og:image" content="https://korea-medical-access.vercel.app/og.jpg" />
+<meta property="og:title" content="대한민국 의료 접근성 분석 지도" />
+<meta property="og:description" content="등시선·접근성×고령화·응급의료·검진 수검률 뷰를 갖춘 전국 252개 시군구 인터랙티브 지도." />
+<meta property="og:url" content="https://korea-medical-analysis.vercel.app/map.html" />
+<meta property="og:image" content="https://korea-medical-analysis.vercel.app/og.jpg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:locale" content="ko_KR" />
@@ -25,7 +25,11 @@
         integrity="sha384-o5uz97et3bErHvpKfD4Jz4n0JfhJDWABFuF4NP+iEEDxE1VwMWJ19QGR0lqFZnr6"
         crossorigin="anonymous"></script>
 <script src="config.js" onerror="window.MAP_KEYS=window.MAP_KEYS||{}"></script>
-<script src="config.local.js" onerror=""></script><!-- 로컬 전용 ORS 키 오버라이드(공개엔 없음) -->
+<script>
+  if(['localhost','127.0.0.1','0.0.0.0','[::1]'].includes(location.hostname)){
+    document.write('<script src="config.local.js"><\/script>');
+  }
+</script><!-- 로컬 전용 ORS 키 오버라이드(공개 배포에서는 요청하지 않음) -->
 <style>
   :root{--bg:#fff;--ink:#111;--muted:#6b7280;--line:#e5e7eb;
     --font:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;}
@@ -133,7 +137,7 @@
              aria-label="시군구 또는 병원 검색" />
       <div class="search-list" id="searchList" hidden></div>
     </div>
-    <span class="badge" id="badge-hosp">병원 48개소 · 제5기+α</span>
+    <span class="badge" id="badge-hosp">병원 47개소 · 제5기 공식</span>
   </div>
   <div id="map">
     <div class="panel sim" id="sim">
@@ -179,7 +183,7 @@
     </div>
     <div class="panel pyramid" id="pyramid">
       <div class="pt" id="py-title">시군구</div>
-      <div class="ps">연령·성별 인구 (KOSIS 2025.12) · <span style="color:#3182bd">■</span>남 <span style="color:#e6550d">■</span>여</div>
+      <div class="ps">연령·성별 인구 (KOSIS 2026.06) · <span style="color:#3182bd">■</span>남 <span style="color:#e6550d">■</span>여</div>
       <div id="py-chart"></div>
       <a id="py-link" href="#" target="_blank" rel="noopener"
         style="display:none;font-size:11px;color:#3182bd;text-decoration:none;margin-top:4px">🔗 pop-pyramid에서 자세히(읍면동·비교·유사지역) ↗</a>
@@ -408,7 +412,7 @@ function renderLegend(){
     ${row('#fff','60분 초과 · 사각지대',true)}<div class="note">OpenRouteService(OSM) · 제5기 + 강원대</div>`;}
   else if(view==='aging'){h=`<h2>고령화지수 (65세↑/0–14세 ×100)</h2>
     ${row(AGING[0],'~150')}${row(AGING[1],'150–250')}${row(AGING[2],'250–400')}${row(AGING[3],'400+')}
-    <div class="note">시군구 · KOSIS 2025.12</div>`;}
+    <div class="note">시군구 · KOSIS 2026.06</div>`;}
   else if(view==='checkup'){h=`<h2>일반건강검진 수검률 (2024)</h2>
     ${row(CHECKUP.C1,'하위 ⅓ · 낮음(취약)')}${row(CHECKUP.C2,'중간 ⅓')}${row(CHECKUP.C3,'상위 ⅓ · 높음')}
     <div class="note">전국 75.6% · 시군구 66~83%<br/>접근성과 <b>약상관</b>(r −0.21), 고령화와 <b>강상관</b>(r −0.62)<br/>KOSIS 국민건강검진 · 성별 합계</div>`;}
@@ -455,7 +459,7 @@ function renderPyramid(code){
   const eld=i65>=0?reg.m.slice(i65).reduce((a,b)=>a+b,0)+reg.f.slice(i65).reduce((a,b)=>a+b,0):null;
   document.getElementById('py-title').textContent=reg.name+(eld!=null?` · 고령인구 ${eld.toLocaleString()}명`:'');
   const link=document.getElementById('py-link');
-  if(reg.pcode){link.style.display='inline-block';link.href='https://park-sung-jun.github.io/pop-pyramid/?code='+encodeURIComponent(reg.pcode);}
+  if(reg.pcode){link.style.display='inline-block';link.href='https://poppyramid.vercel.app/?code='+encodeURIComponent(reg.pcode);}
   else link.style.display='none';
   if(!pyChart)pyChart=echarts.init(document.getElementById('py-chart'));
   const bands=PYR.bands, male=reg.m.map(v=>-v), female=reg.f;
@@ -696,6 +700,7 @@ function myNearestHospital(){
   if(u&&u.view)view=u.view;
   map=new maplibregl.Map({container:'map',style:basemapStyle('carto-positron'),
     center:(u&&u.center)||[127.8,36.3],zoom:(u&&u.zoom)||6.4,minZoom:5,maxZoom:14,
+    boxZoom:false,
     preserveDrawingBuffer:true,
     localIdeographFontFamily:"'Malgun Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif"});
   window.map=map;
@@ -713,7 +718,7 @@ function myNearestHospital(){
   // URL의 view를 토글 버튼에도 반영
   document.querySelectorAll('#view-seg button').forEach(x=>x.classList.toggle('on',x.dataset.view===view));
   const n=DATA.hosp&&DATA.hosp.features?DATA.hosp.features.length:0;
-  if(n)document.getElementById('badge-hosp').textContent=`병원 ${n}개소 · 제5기+α`;
+  if(n)document.getElementById('badge-hosp').textContent=`병원 ${n}개소 · 제5기 공식`;
 })();
 </script>
 </body>

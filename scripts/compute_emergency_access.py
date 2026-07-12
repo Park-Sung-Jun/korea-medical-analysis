@@ -11,6 +11,7 @@
 usage: python scripts/compute_emergency_access.py
 출력: sigungu_bivariate.geojson(in-place) + data/emergency_stats.json
 """
+import argparse
 import json
 import math
 import os
@@ -28,6 +29,7 @@ import _env  # noqa: F401,E402
 DATA = HERE.parent / "data"
 BIV = DATA / "sigungu_bivariate.geojson"
 EMG = DATA / "emergency.geojson"
+STATS = DATA / "emergency_stats.json"
 MATRIX_URL = "https://api.openrouteservice.org/v2/matrix/driving-car"
 SLEEP = 1.8
 RETRY = 4
@@ -78,21 +80,30 @@ def pearson(pairs):
     return round(sxy / (sxx * syy), 3) if sxx and syy else None
 
 
-def main():
-    key = os.environ["ORS_API_KEY"].strip()
-    emg = json.loads(EMG.read_text(encoding="utf-8"))
+def run(biv_path=BIV, emergency_path=EMG, stats_path=STATS, selected_codes=None, force=False):
+    key = (os.environ.get("ORS_API_KEY") or os.environ.get("ORS_KEY") or "").strip()
+    if not key:
+        raise SystemExit("ORS_API_KEY 또는 ORS_KEY 환경변수가 필요합니다.")
+    emg = json.loads(emergency_path.read_text(encoding="utf-8"))
     pts = [(f["geometry"]["coordinates"], f["properties"]["cls"], f["properties"]["name"])
            for f in emg["features"]]
     desig = [(c, n) for c, cl, n in pts if cl in DESIG_CLS]
     centers = [(c, n) for c, cl, n in pts if cl in CENTER_CLS]
     print(f"지정기관 {len(desig)} (센터급 {len(centers)})")
 
-    biv = json.loads(BIV.read_text(encoding="utf-8"))
+    biv = json.loads(biv_path.read_text(encoding="utf-8"))
     feats = biv["features"]
+    selected_codes = set(selected_codes or [])
+    all_codes = {str(f.get("properties", {}).get("code", "")) for f in feats}
+    missing_codes = sorted(selected_codes - all_codes)
+    if missing_codes:
+        raise SystemExit(f"요청 코드가 GeoJSON에 없습니다: {', '.join(missing_codes)}")
+    targets = [f for f in feats
+               if not selected_codes or str(f.get("properties", {}).get("code", "")) in selected_codes]
     done = 0
-    for i, f in enumerate(feats, 1):
+    for i, f in enumerate(targets, 1):
         p = f["properties"]
-        if p.get("er_min") is not None and p.get("er_center_min") is not None:
+        if not force and p.get("er_min") is not None and p.get("er_center_min") is not None:
             continue  # 재실행 시 이어서
         rep = shape(f["geometry"]).buffer(0).representative_point()
         src = [rep.x, rep.y]
@@ -113,12 +124,12 @@ def main():
         p["er_class"] = band(p["er_min"])
         p["er_center_class"] = band(p["er_center_min"])
         done += 1
-        print(f"  [{i}/250] {p.get('sido','')} {p['name']}: 지정 {p['er_min']}분 / 센터 {p['er_center_min']}분")
+        print(f"  [{i}/{len(targets)}] {p.get('sido','')} {p['name']}: 지정 {p['er_min']}분 / 센터 {p['er_center_min']}분")
         if done % 25 == 0:  # 중간 저장(쿼터 소진·중단 대비)
-            BIV.write_text(json.dumps(biv, ensure_ascii=False), encoding="utf-8")
+            biv_path.write_text(json.dumps(biv, ensure_ascii=False), encoding="utf-8")
         time.sleep(SLEEP)
 
-    BIV.write_text(json.dumps(biv, ensure_ascii=False), encoding="utf-8")
+    biv_path.write_text(json.dumps(biv, ensure_ascii=False), encoding="utf-8")
 
     # 통계
     def col(k):
@@ -146,7 +157,7 @@ def main():
             "er_center_vs_aging": pearson(pair("er_center_min", "aging_index")),
         },
     }
-    (DATA / "emergency_stats.json").write_text(
+    stats_path.write_text(
         json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
     print("\n저장: geojson + emergency_stats.json")
     print(f"지정기관: 중앙값 {stats['er']['median']}분, >30분 {stats['er']['over30_n']}곳")
@@ -154,5 +165,19 @@ def main():
     print(f"상관: 지정vs상급종합 r={stats['corr']['er_vs_tertiary']}, 센터vs상급종합 r={stats['corr']['er_center_vs_tertiary']}")
 
 
+def main():
+    parser = argparse.ArgumentParser(description="시군구 응급의료 ORS 접근시간 계산")
+    parser.add_argument("--biv", type=Path, default=BIV)
+    parser.add_argument("--emergency", type=Path, default=EMG)
+    parser.add_argument("--stats", type=Path, default=STATS)
+    parser.add_argument("--codes", default="", help="쉼표로 구분한 선택 코드")
+    parser.add_argument("--force", action="store_true", help="기존 값도 다시 계산")
+    args = parser.parse_args()
+    codes = [code.strip() for code in args.codes.split(",") if code.strip()]
+    run(args.biv, args.emergency, args.stats, codes, args.force)
+
+
 if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     main()

@@ -2,15 +2,18 @@
 리포트용 통계 번들 생성: 모든 data/ 산출물을 읽어 data/report_stats.json 으로 요약.
 report.html 이 이 JSON 을 fetch 해 KPI/표/상관을 렌더한다.
 """
-import csv, json
+import argparse, csv, json
 from pathlib import Path
 import sys
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from fetch_ohca import sido_access_metrics, latest_by_sido, find_col, BIV  # noqa
+from fetch_ohca import sido_access_metrics, latest_by_sido, find_col  # noqa
 
 DATA = HERE.parent / "data"
+DEFAULT_BIV = DATA / "sigungu_bivariate.geojson"
+DEFAULT_HOSPITALS = DATA / "hospitals.json"
+DEFAULT_OUT = DATA / "report_stats.json"
 
 
 def pearson(xs, ys):
@@ -31,11 +34,12 @@ def num(x):
         return None
 
 
-def main():
-    biv = json.loads((DATA / "sigungu_bivariate.geojson").read_text(encoding="utf-8"))
+def main(biv_path=DEFAULT_BIV, hospitals_path=DEFAULT_HOSPITALS,
+         out_path=DEFAULT_OUT, data_dir=DATA):
+    biv = json.loads(biv_path.read_text(encoding="utf-8"))
     F = [f["properties"] for f in biv["features"]]
     meta = biv.get("meta", {})
-    hosp = json.loads((DATA / "hospitals.json").read_text(encoding="utf-8"))["hospitals"]
+    hosp = json.loads(hospitals_path.read_text(encoding="utf-8"))["hospitals"]
 
     # 바이베리엇 분포
     from collections import Counter
@@ -97,9 +101,9 @@ def main():
     }
 
     # OHCA 시도 검증
-    acc = sido_access_metrics(BIV)
-    surv_rows = list(csv.DictReader((DATA / "ohca_survival_sido.csv").open(encoding="utf-8-sig")))
-    inc_rows = list(csv.DictReader((DATA / "ohca_incidence_sido.csv").open(encoding="utf-8-sig")))
+    acc = sido_access_metrics(biv_path)
+    surv_rows = list(csv.DictReader((data_dir / "ohca_survival_sido.csv").open(encoding="utf-8-sig")))
+    inc_rows = list(csv.DictReader((data_dir / "ohca_incidence_sido.csv").open(encoding="utf-8-sig")))
     sl, sk = latest_by_sido(surv_rows)
     il, ik = latest_by_sido(inc_rows)
     scol, icol = find_col(sk, "질병_표준"), find_col(ik, "질병_표준")
@@ -145,7 +149,7 @@ def main():
         }
 
     stats = {
-        "generated_note": "isochrone_map 통계 번들 (수치는 data/ 산출물 기준)",
+        "generated_note": "korea-medical-analysis 통계 번들 (수치는 data/ 산출물 기준)",
         "kpi": {
             "hospitals": len(hosp),
             "sigungu": len(F),
@@ -178,14 +182,25 @@ def main():
         "traffic": traffic,
         "ohca": ohca,
     }
-    out = DATA / "report_stats.json"
-    out.write_text(json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"저장: {out}")
+    out_path.write_text(json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"저장: {out_path}")
     print(f"  KPI: 병원{stats['kpi']['hospitals']} 시군구{stats['kpi']['sigungu']} "
           f"삼중취약{stats['kpi']['triple_vulnerable']} 종합0={stats['kpi']['sigungu_no_general']}")
     print(f"  OHCA r(사각vs생존)={ohca['r_dead_surv']} (제주제외 {ohca['r_dead_surv_exJeju']}) "
           f"r(고령vs생존)={ohca['r_aging_surv']}")
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="리포트 통계 번들 생성")
+    parser.add_argument("--biv", type=Path, default=DEFAULT_BIV)
+    parser.add_argument("--hospitals", type=Path, default=DEFAULT_HOSPITALS)
+    parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    parser.add_argument("--data-dir", type=Path, default=DATA)
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    main()
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    args = parse_args()
+    main(args.biv, args.hospitals, args.out, args.data_dir)

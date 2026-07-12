@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>상급종합병원 접근성·고령화 — 의료취약지 리포트</title>
-<meta name="description" content="상급종합병원 48곳까지의 실측 운전시간 × 고령화 × 검진·질환부담·응급의료로 전국 250개 시군구의 의료취약지를 식별하는 데이터 리포트." />
+<title>대한민국 의료 접근성 분석</title>
+<meta name="description" content="공식 상급종합병원 47곳까지의 실측 운전시간 × 고령화 × 검진·질환부담·응급의료로 전국 252개 시군구의 의료취약지를 식별하는 데이터 리포트." />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="의료취약지 리포트 — 상급종합병원 접근성 × 고령화" />
-<meta property="og:description" content="실측 운전시간·고령화·검진 수검률·응급의료 접근성으로 본 전국 250개 시군구 의료취약지 분석." />
-<meta property="og:url" content="https://korea-medical-access.vercel.app/" />
-<meta property="og:image" content="https://korea-medical-access.vercel.app/og.jpg" />
+<meta property="og:title" content="대한민국 의료 접근성 분석" />
+<meta property="og:description" content="실측 운전시간·고령화·검진 수검률·응급의료 접근성으로 본 전국 252개 시군구 의료취약지 분석." />
+<meta property="og:url" content="https://korea-medical-analysis.vercel.app/" />
+<meta property="og:image" content="https://korea-medical-analysis.vercel.app/og.jpg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:locale" content="ko_KR" />
@@ -20,38 +20,42 @@
         crossorigin="anonymous"></script>
 <style>
   :root{
-    --bg:#ffffff;--ink:#111111;--muted:#6b7280;--line:#e5e7eb;--soft:#f8f9fa;
-    --accent:#dc2626;--ok:#1a9850;
-    --font:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    --bg:#f8f9fa;--surface:#ffffff;--ink:#191c1d;--muted:#556064;--line:#e9ecef;--soft:#f3f4f5;
+    --accent:#006b55;--accent-hover:#005140;--danger:#ba1a1a;--ok:#006b55;
+    --font:"Public Sans","Pretendard Variable",Pretendard,"Noto Sans KR",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth;overflow-anchor:none}
-  body{margin:0;font-family:var(--font);color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+  body{margin:0;font-family:var(--font);font-size:13px;color:var(--ink);background:var(--bg);line-height:1.55;-webkit-font-smoothing:antialiased}
   a{color:inherit}
-  .topbar{position:sticky;top:0;z-index:20;height:56px;display:flex;align-items:center;gap:18px;
-    padding:0 28px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.86);backdrop-filter:blur(8px)}
-  .topbar b{font-size:14.5px;letter-spacing:-.2px}
-  .topbar nav{display:flex;gap:16px;margin-left:auto}
-  .topbar nav a{font-size:12.5px;color:var(--muted);text-decoration:none;transition:color .15s}
+  .topbar{position:sticky;top:0;z-index:20;height:56px;display:flex;align-items:center;gap:12px;
+    padding:0 32px;border-bottom:1px solid var(--line);background:var(--surface)}
+  .wn-brand{display:inline-flex;align-items:center;flex:none;text-decoration:none}
+  .wn-brand img{height:24px;max-width:160px;display:block}
+  .wn-topbar-divider{width:1px;height:20px;flex:none;background:var(--line)}
+  .wn-topbar-tool{font-size:13px;font-weight:600;color:#3c4a44;white-space:nowrap}
+  .topbar nav{display:flex;gap:12px;margin-left:auto;overflow-x:auto}
+  .topbar nav a{font-size:12px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:color .12s}
   .topbar nav a:hover{color:var(--ink)}
   .topbar nav a.active{color:var(--ink);font-weight:700}
+  a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .anchor{margin-left:9px;text-decoration:none;font-weight:700;font-size:.78em;color:var(--line);
     opacity:0;transition:opacity .15s,color .15s;vertical-align:middle}
   h2:hover .anchor,.anchor:focus{opacity:1;color:var(--muted);outline:none}
   .anchor:hover{color:var(--accent)}
   .anchor.copied{opacity:1;color:var(--ok)}
   .anchor.copied::after{content:" 링크 복사됨";font-size:.82em;font-weight:600;white-space:nowrap}
-  .wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 32px}
   .hero{padding:64px 0 28px}
-  .hero h1{font-size:30px;font-weight:800;letter-spacing:-.6px;margin:0 0 12px;line-height:1.25}
+  .hero h1{font-size:28px;font-weight:750;letter-spacing:0;margin:0 0 12px;line-height:1.25}
   .hero p{font-size:15px;color:var(--muted);max-width:680px;margin:0}
   .tag{display:inline-block;font-size:11.5px;color:var(--muted);border:1px solid var(--line);
     border-radius:999px;padding:3px 11px;margin-bottom:18px}
   /* KPI */
   .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:30px 0 8px}
-  .kpi{border:1px solid var(--line);border-radius:10px;padding:16px 14px;background:#fff}
+  .kpi{border:1px solid var(--line);border-radius:8px;padding:16px 14px;background:var(--surface)}
   .kpi .v{font-size:27px;font-weight:800;letter-spacing:-.5px}
-  .kpi .v.warn{color:var(--accent)}
+  .kpi .v.warn{color:var(--danger)}
   .kpi .l{font-size:11.5px;color:var(--muted);margin-top:3px}
   section{padding:46px 0;border-top:1px solid var(--line);scroll-margin-top:70px}
   .hero{scroll-margin-top:70px}
@@ -67,7 +71,7 @@
   tr.susp td{color:#9ca3af}
   .pill{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:6px;padding:1px 7px;color:var(--muted)}
   .pill.bad{color:var(--accent);border-color:#f3c6c6;background:#fdf2f2}
-  .mapframe{width:100%;height:560px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .mapframe{width:100%;height:560px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
   .mapframe iframe{width:100%;height:100%;border:0;display:block}
   .chart{width:100%;height:480px}
   .chart-split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -76,7 +80,7 @@
   .seg button{border:0;background:#fff;padding:7px 14px;font-size:12.5px;cursor:pointer;color:#444;
     font-family:inherit;border-right:1px solid var(--line)}
   .seg button:last-child{border-right:0}
-  .seg button.on{background:#111;color:#fff;font-weight:600}
+  .seg button.on{background:var(--accent);color:#fff;font-weight:600}
   .corr{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 20px}
   .corr .c{border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:150px}
   .corr .c b{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums}
@@ -94,23 +98,35 @@
   .vvi-chk{font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
   .btn-mini{border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 12px;
     font-size:12px;font-family:inherit;cursor:pointer;color:#111}
-  .btn-mini:hover{background:var(--soft)}
+  .btn-mini:hover{background:var(--soft);border-color:var(--accent);color:var(--accent)}
+  abbr.abbr{text-decoration:none;border-bottom:1px dotted var(--muted);cursor:help}
   .gen-link{font-size:11px;color:#0969da;text-decoration:none;white-space:nowrap;margin-left:4px}
   .gen-link:hover{text-decoration:underline}
   @media(max-width:880px){ .vvi-controls{grid-template-columns:repeat(2,1fr)} }
   footer{padding:34px 0 60px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+  .totop{position:fixed;right:20px;bottom:20px;z-index:30;width:44px;height:44px;border:1px solid var(--ink);
+    border-radius:8px;background:var(--ink);color:#fff;cursor:pointer;font:700 18px/1 var(--font);
+    opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .15s,transform .15s,visibility .15s}
+  .totop.show{opacity:1;visibility:visible;transform:none}
+  .totop:hover{background:#343a40}
   @media(max-width:880px){
     .kpis{grid-template-columns:repeat(2,1fr)}
     .chart-split{grid-template-columns:1fr}
     .grid2{grid-template-columns:1fr}
+    section{overflow-x:auto}
+    .grid2>div{min-width:0;overflow-x:auto}
     .topbar nav{display:none}
+    .topbar,.wrap{padding-left:16px;padding-right:16px}
+    .wn-topbar-tool{overflow:hidden;text-overflow:ellipsis}
   }
 </style>
 </head>
-<body>
-<div class="topbar">
-  <b>의료취약지 리포트</b>
-  <nav>
+<body class="wn-scope">
+<div class="topbar wn-topbar">
+  <a class="wn-brand" href="#kpi" aria-label="WaveNet 홈"><img src="assets/wavenet_logo2.svg" alt="WaveNet" /></a>
+  <span class="wn-topbar-divider" aria-hidden="true"></span>
+  <strong class="wn-topbar-tool">대한민국 의료 접근성 분석</strong>
+  <nav class="wn-topbar-actions" aria-label="리포트 섹션">
     <a href="#kpi">핵심지표</a>
     <a href="#triple">삼중취약지</a>
     <a href="#priority">우선순위(VVI)</a>
@@ -126,15 +142,15 @@
     <a href="#ohca">생존율 검증</a>
     <a href="#method">방법·한계</a>
     <a href="https://hc-mkdata.tms-ai-lab.com" target="_blank" rel="noopener"
-       title="배포본(구글 로그인 필요) — 로컬 서버는 http://localhost:8081"
+       title="합성 건강검진 데이터 생성기"
        style="color:var(--ink);font-weight:700">합성데이터 생성기 ↗</a>
   </nav>
 </div>
 
 <div class="wrap">
   <div class="hero" id="kpi">
-    <span class="tag">제5기 상급종합병원(47) + 강원대학교병원 · 전국 시군구 250</span>
-    <h1>상급종합병원 접근성 × 고령화<br/>의료취약지 분석</h1>
+    <span class="tag">전국 252개 시군구 · 공식 상급종합병원 47곳 기준</span>
+    <h1>대한민국 의료 접근성 분석</h1>
     <p>가장 가까운 상급종합병원까지의 실측 운전시간, 시군구 고령화지수, 그리고 관내 종합병원 공급을
        결합해 “늙고·멀고·2차병원조차 없는” 의료취약지를 식별한다.</p>
     <div class="kpis" id="kpiCards"></div>
@@ -160,9 +176,9 @@
   </section>
 
   <section id="priority" class="reveal">
-    <h2>의료취약 우선순위 종합점수(VVI) — “그래서 어디부터?”</h2>
-    <p class="sub">접근성·고령규모·2차공급·질환부담·미수검을 0–100으로 정규화해 가중합한 종합 취약지수.
-       슬라이더로 정책 우선순위를 직접 조절하세요. 섬·도로미연결(접근시간 과대)은 별도 표기·제외합니다.</p>
+    <h2>의료취약 종합지수 <abbr class="abbr" title="Vulnerability Index — 접근성·고령인구·2차병원 공급·질환부담·미수검을 0–100으로 합산한 지역 의료취약 종합점수">VVI</abbr></h2>
+    <p class="sub">접근성·고령인구·2차병원 공급·질환부담·미수검을 0–100으로 환산해 합산한 값입니다.
+       점수가 높을수록 취약하며, 아래 슬라이더로 정책 가중치를 조절할 수 있습니다. 섬 지역은 이동시간 과대추정 가능성을 별도로 표시합니다.</p>
     <div class="vvi-controls" id="vviControls"></div>
     <div class="vvi-toolbar">
       <div class="seg" id="vviAccessSeg">
@@ -230,7 +246,7 @@
   <section id="elderly" class="reveal">
     <h2>고령화 ‘지수’가 아니라 ‘실제 고령인구’로</h2>
     <p class="sub">고령화지수(65↑/0–14×100)가 아무리 높아도 인구가 적으면 영향 규모는 작다.
-       의료취약 우선순위는 “실제로 몇 명의 노인이 멀리 있는가”로 봐야 한다. (KOSIS 2025.12)</p>
+       의료취약 우선순위는 “실제로 몇 명의 노인이 멀리 있는가”로 봐야 한다. (KOSIS 2026.06)</p>
     <div class="corr" id="elderlyStats"></div>
     <div class="grid2">
       <div>
@@ -273,7 +289,7 @@
 
   <section id="emergency" class="reveal">
     <h2>응급의료 접근성 — 골든타임의 지도</h2>
-    <p class="sub">상급종합(48곳)과 달리 응급은 <b>분 단위</b>가 생사를 가른다. E-Gen(국립중앙의료원) 전국 응급의료기관을
+    <p class="sub">공식 상급종합(47곳)과 달리 응급은 <b>분 단위</b>가 생사를 가른다. E-Gen(국립중앙의료원) 전국 응급의료기관을
        받아 시군구 대표점→최근접 기관 운전시간을 ORS Matrix로 실측했다. 지도의 <b>응급 접근성</b> 뷰와 연동.</p>
     <div class="corr" id="erCorr"></div>
     <div class="grid2">
@@ -384,8 +400,8 @@
     <h2>데이터 출처 · 방법 · 한계</h2>
     <div class="grid2">
       <ul class="src">
-        <li><b>병원</b> — 보건복지부 제5기('24–'26) 상급종합병원 47 + 강원대학교병원(좌표 Nominatim 검증)</li>
-        <li><b>인구·고령화</b> — 통계청 KOSIS 주민등록 2025.12 (고령화지수 = 65세↑ / 0–14세 ×100)</li>
+        <li><b>병원</b> — 보건복지부 제5기('24–'26) 공식 상급종합병원 47개</li>
+        <li><b>인구·고령화</b> — 통계청 KOSIS 주민등록 2026.06 (고령화지수 = 65세↑ / 0–14세 ×100)</li>
         <li><b>도로·등시선</b> — OpenRouteService(OSM, driving-car). 무료 상한 60분, 그 밖은 Matrix로 실측</li>
         <li><b>종합병원</b> — 건강보험심사평가원 병원정보서비스 → 좌표 공간조인</li>
         <li><b>심정지</b> — 보건복지부 급성심장정지 발생률·생존율(odcloud, 시도 단위, 2023)</li>
@@ -401,8 +417,10 @@
 </div>
 
 <div class="wrap"><footer>
-  생성: 정적 리포트 · 데이터 기준 <code>data/report_stats.json</code> · 로컬 서버에서 열람(파일 직접 열면 fetch 차단).
+  대한민국 의료 접근성 분석 · 상급종합병원 접근성 × 고령화 × 검진·응급의료 데이터
 </footer></div>
+
+<button class="totop" id="toTop" type="button" aria-label="맨 위로" title="맨 위로">↑</button>
 
 <script>
 const fmt = (n,d=0)=> n==null?'-':Number(n).toLocaleString('ko-KR',{maximumFractionDigits:d});
@@ -981,7 +999,7 @@ function deepLinks(){
 (async()=>{
   try{ S=await (await fetch('data/report_stats.json')).json(); }
   catch(e){ document.body.insertAdjacentHTML('afterbegin',
-    '<div style="padding:20px;color:#dc2626">report_stats.json 로드 실패 — 로컬 서버로 여세요 (python -m http.server).</div>'); return; }
+    '<div role="alert" style="padding:20px;color:#93000a">분석 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>'); return; }
   try{ C=await (await fetch('data/checkup_stats.json')).json(); }catch(e){ C=null; }
   try{ H=await (await fetch('data/health_indicator_stats.json')).json(); }catch(e){ H=null; }
   try{ E=await (await fetch('data/emergency_stats.json')).json(); }catch(e){ E=null; }
@@ -989,6 +1007,15 @@ function deepLinks(){
   try{ SGG=(await (await fetch('data/sigungu_bivariate.geojson')).json()).features.map(f=>f.properties); }catch(e){ SGG=null; }
   kpiCards(); tripleTable(); supply(); elderlyView(); checkupView(); healthView(); erView(); trendView(); trafficView(); ohcaCorr();
   bubbleChart(); splitCharts(); wireSeg(); reveals(); deepLinks(); vviView(); sidoRollup(); distView();
+})();
+
+// Z 리디자인에서 통합한 맨 위로 이동 기능
+(() => {
+  const button=document.getElementById('toTop');
+  if(!button) return;
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  addEventListener('scroll',()=>button.classList.toggle('show',scrollY>640),{passive:true});
+  button.addEventListener('click',()=>scrollTo({top:0,behavior:reduced?'auto':'smooth'}));
 })();
 </script>
 </body>

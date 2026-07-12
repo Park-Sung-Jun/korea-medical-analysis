@@ -2,14 +2,19 @@
 node_modules
 .git
 scripts
+tests
 synthetic
 *.py
 _*.js
 _*.tsv
 # KOSIS 원본 CSV (0.9GB) — 런타임 미사용(통계는 *_stats.json 에 사전계산)
 data/*.csv
+data/*.next.*
 data/_kosis_manifest.tsv
 data/synthetic_baseline.json
+data/population.json
+# 월별 원천(pop_YYYYMM.json)만 제외하고 런타임 pop_pyramid.json은 포함
+data/pop_[0-9]*.json
 data/DT_*.json
 data/*.xls
 data/*.xlsx

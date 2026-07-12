@@ -10,7 +10,7 @@ TMAP 전수 교차검증 결과(tmap_xcheck_full.csv)를 sigungu_bivariate.geojs
 
 ORS(자유흐름) 기준과 비교 통계도 출력.
 """
-import csv, json
+import argparse, csv, json, sys
 from pathlib import Path
 
 DATA = Path(__file__).resolve().parent.parent / "data"
@@ -26,16 +26,71 @@ def aclass(m):
     return 3
 
 
+def coarse_band(minutes):
+    if minutes is None:
+        return None
+    if minutes <= 60:
+        return "<=60"
+    if minutes <= 90:
+        return "60~90"
+    if minutes <= 120:
+        return "90~120"
+    return ">120"
+
+
+def _number(value):
+    if value in (None, ""):
+        return None
+    return float(value)
+
+
+def apply_tmap_row(properties, row):
+    """TMAP 행을 병합하고 60분 등시선 밖 지역은 ORS Matrix 값으로 복원한다."""
+    tmap_minutes = _number(row.get("tmap_min"))
+    ors_minutes = _number(row.get("ors_min"))
+    properties["access_min_tmap"] = tmap_minutes
+    properties["access_min_ors_exact"] = ors_minutes
+    properties["access_ratio"] = _number(row.get("ratio"))
+
+    if properties.get("access_min") is None and ors_minutes is not None:
+        properties["access_min"] = ors_minutes
+        properties["access_min_exact"] = True
+        properties["access_band"] = coarse_band(ors_minutes)
+        properties["access_suspect"] = ors_minutes > 300
+        access_class = aclass(ors_minutes)
+        properties["access_class"] = access_class
+        properties["access_label"] = (
+            "<=30분" if access_class == 1 else "30~60분" if access_class == 2 else ">60분/사각지대"
+        )
+        aging_class = properties.get("aging_class")
+        properties["bivar_class"] = f"A{aging_class}B{access_class}" if aging_class else None
+
+    tmap_class = aclass(tmap_minutes)
+    properties["access_class_tmap"] = tmap_class
+    aging_class = properties.get("aging_class")
+    properties["bivar_class_tmap"] = f"A{aging_class}B{tmap_class}" if aging_class else None
+
+
 def main():
-    src = DATA / "tmap_xcheck_full.csv"
+    parser = argparse.ArgumentParser(description="TMAP 교차검증 결과를 의료 접근성 GeoJSON에 병합")
+    parser.add_argument("--src", type=Path, default=DATA / "tmap_xcheck_full.csv")
+    parser.add_argument("--biv", type=Path, default=DATA / "sigungu_bivariate.geojson")
+    parser.add_argument("--out", type=Path, default=None)
+    parser.add_argument("--require-codes", default="", help="반드시 병합돼야 할 쉼표 구분 코드")
+    args = parser.parse_args()
+    src = args.src
     if not src.exists():
         raise SystemExit(f"{src} 없음 — 먼저 cross_validate_tmap.py --full 실행")
     by = {}
     for r in csv.DictReader(src.open(encoding="utf-8-sig")):
-        by[r["code"]] = r
+        code = r["code"]
+        if code in by:
+            raise SystemExit(f"TMAP CSV 중복 코드: {code}")
+        by[code] = r
 
-    biv = json.loads((DATA / "sigungu_bivariate.geojson").read_text(encoding="utf-8"))
+    biv = json.loads(args.biv.read_text(encoding="utf-8"))
     changed = matched = 0
+    matched_codes = set()
     from collections import Counter
     dist = Counter()
     for f in biv["features"]:
@@ -44,21 +99,21 @@ def main():
         if not row:
             continue
         matched += 1
-        tm = float(row["tmap_min"]) if row.get("tmap_min") else None
-        p["access_min_tmap"] = tm
-        p["access_min_ors_exact"] = float(row["ors_min"]) if row.get("ors_min") else None
-        p["access_ratio"] = float(row["ratio"]) if row.get("ratio") else None
-        ac = aclass(tm)
-        p["access_class_tmap"] = ac
-        gc = p.get("aging_class")
-        p["bivar_class_tmap"] = (f"A{gc}B{ac}" if gc else None)
+        matched_codes.add(str(p.get("code", "")))
+        apply_tmap_row(p, row)
+        ac = p["access_class_tmap"]
         dist[p["bivar_class_tmap"]] += 1
         if ac != p.get("access_class"):
             changed += 1
 
     biv.setdefault("meta", {})["tmap_fields"] = \
         "access_min_tmap=교통반영(TMAP)분, access_ratio=TMAP/ORS, bivar_class_tmap=교통반영 바이베리엇"
-    (DATA / "sigungu_bivariate.geojson").write_text(json.dumps(biv, ensure_ascii=False), encoding="utf-8")
+    required_codes = {code.strip() for code in args.require_codes.split(",") if code.strip()}
+    missing = sorted(required_codes - matched_codes)
+    if missing:
+        raise SystemExit(f"필수 TMAP 코드 미병합: {', '.join(missing)}")
+    out = args.out or args.biv
+    out.write_text(json.dumps(biv, ensure_ascii=False), encoding="utf-8")
 
     # 통계
     F = [f["properties"] for f in biv["features"]]
@@ -85,4 +140,6 @@ def main():
 
 
 if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     main()

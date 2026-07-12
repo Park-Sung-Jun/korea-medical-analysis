@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 """generator.py 단위 테스트 — `python synthetic/test_generator.py` 로 실행."""
 
+import json
 import os
 import sys
+import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -344,14 +347,32 @@ class TestCohortAndExports(unittest.TestCase):
                 self.assertLessEqual(abs(r["egfr"] - exp), 1.0)
 
     def test_year_selection(self):
-        yrs = g.available_years()
-        self.assertIn(2024, yrs)
-        if 2022 in yrs:
-            sp = g.load_spec(year=2022)
-            self.assertEqual(sp["year"], 2022)
-            rows, m = g.generate(sp, 500, seed=1)
-            self.assertEqual(m["year"], 2022)
-            self.assertTrue(all(r["year"] == 2022 for r in rows))
+        old_cache = g._AVAIL_YEARS
+        try:
+            with tempfile.TemporaryDirectory() as data_dir, mock.patch.object(g, "DATA_DIR", data_dir):
+                for tid in g._CORE_TABLES:
+                    path = os.path.join(data_dir, f"DT_35007_{tid}.csv")
+                    with open(path, "w", encoding="utf-8", newline="") as f:
+                        f.write("PRD_DE\n2022\n2024\n")
+
+                g._AVAIL_YEARS = None
+                self.assertEqual(g.available_years(), [2022, 2024])
+
+                os.remove(os.path.join(data_dir, f"DT_35007_{g._CORE_TABLES[-1]}.csv"))
+                g._AVAIL_YEARS = None
+                self.assertEqual(g.available_years(), [])
+
+                spec_2022 = dict(SPEC, year=2022)
+                with open(os.path.join(data_dir, "synthetic_baseline_2022.json"),
+                          "w", encoding="utf-8") as f:
+                    json.dump(spec_2022, f, ensure_ascii=False)
+                sp = g.load_spec(year=2022)
+                self.assertEqual(sp["year"], 2022)
+                rows, m = g.generate(sp, 500, seed=1)
+                self.assertEqual(m["year"], 2022)
+                self.assertTrue(all(r["year"] == 2022 for r in rows))
+        finally:
+            g._AVAIL_YEARS = old_cache
 
     def test_datacard(self):
         rows, m = g.generate(SPEC, 500, seed=3)

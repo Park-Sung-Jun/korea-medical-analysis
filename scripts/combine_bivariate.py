@@ -10,7 +10,10 @@ isochrones.geojson(접근성) + sigungu.geojson(고령화)을 결합해
 
 ORS 등시선(fetch_isochrones.py) 실행 후에 돌린다.
 """
+import argparse
 import json
+import sys
+from collections import Counter
 from pathlib import Path
 from shapely.geometry import shape
 from shapely.ops import unary_union
@@ -32,12 +35,8 @@ def access_class(minutes):
     return 3, ">60분/사각지대"
 
 
-def main():
-    if not ISO.exists():
-        raise SystemExit(f"{ISO} 없음. 먼저 fetch_isochrones.py 실행.")
-    iso = json.loads(ISO.read_text(encoding="utf-8"))
-    sgg = json.loads(SGG.read_text(encoding="utf-8"))
-
+def build_bivariate(iso, sgg):
+    """입력 문서를 수정하지 않고 새 바이베리엇 FeatureCollection을 만든다."""
     # 밴드별 누적 coverage(작은 분 = 안쪽) 폴리곤
     bands = sorted({f["properties"]["minutes"] for f in iso["features"]})
     by_band = {}
@@ -87,20 +86,50 @@ def main():
         })
         feats.append({"type": "Feature", "properties": p, "geometry": f["geometry"]})
 
-    fc = {"type": "FeatureCollection",
-          "meta": {"aging_tertiles": [round(t1, 1), round(t2, 1)],
-                   "bands_min": bands,
-                   "bivar_legend": "A=고령화(1낮음~3높음) B=접근성(1좋음~3나쁨), A3B3=최취약"},
-          "features": feats}
-    OUT.write_text(json.dumps(fc, ensure_ascii=False), encoding="utf-8")
+    meta = dict(sgg.get("meta", {}))
+    meta.update({
+        "isochrone_source": iso.get("meta", {}).get("source"),
+        "isochrone_hospitals": iso.get("meta", {}).get("hospitals"),
+        "aging_tertiles": [round(t1, 1), round(t2, 1)],
+        "bands_min": bands,
+        "bivar_legend": "A=고령화(1낮음~3높음) B=접근성(1좋음~3나쁨), A3B3=최취약",
+        "count": len(feats),
+    })
+    return {"type": "FeatureCollection", "meta": meta, "features": feats}
 
-    from collections import Counter
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="행정경계와 등시선을 결합해 바이베리엇 GeoJSON 생성")
+    parser.add_argument("--iso", type=Path, default=ISO, help="등시선 GeoJSON")
+    parser.add_argument("--sgg", type=Path, default=SGG, help="시군구 GeoJSON")
+    parser.add_argument("--out", type=Path, default=OUT, help="출력 GeoJSON")
+    parser.add_argument("--expect-count", type=int, default=None, help="예상 시군구 수 검증")
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    if not args.iso.exists():
+        raise SystemExit(f"{args.iso} 없음. 먼저 fetch_isochrones.py 실행.")
+    if not args.sgg.exists():
+        raise SystemExit(f"{args.sgg} 없음. 먼저 build_sigungu.py 실행.")
+    iso = json.loads(args.iso.read_text(encoding="utf-8"))
+    sgg = json.loads(args.sgg.read_text(encoding="utf-8"))
+    fc = build_bivariate(iso, sgg)
+    feats = fc["features"]
+    if args.expect_count is not None and len(feats) != args.expect_count:
+        raise SystemExit(f"시군구 수 불일치: {len(feats)} != {args.expect_count}")
+    args.out.write_text(json.dumps(fc, ensure_ascii=False), encoding="utf-8")
+
     cnt = Counter(f["properties"]["bivar_class"] for f in feats)
-    print(f"저장: {OUT}  시군구={len(feats)}")
+    t1, t2 = fc["meta"]["aging_tertiles"]
+    print(f"저장: {args.out}  시군구={len(feats)}")
     print(f"고령화 3분위 경계: {t1:.1f}, {t2:.1f}")
     print("바이베리엇 분포:", dict(sorted(cnt.items())))
     print("최취약(A3B3):", cnt.get("A3B3", 0), "개 시군구")
 
 
 if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     main()

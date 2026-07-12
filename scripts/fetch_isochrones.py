@@ -23,7 +23,10 @@ from pathlib import Path
 import requests
 from shapely.geometry import shape, mapping
 from shapely.ops import unary_union
-import _env  # noqa: F401  (.env 자동 로드 side-effect)
+try:
+    from . import _env  # noqa: F401  (.env 자동 로드 side-effect)
+except ImportError:  # `python scripts/fetch_isochrones.py` 직접 실행
+    import _env  # noqa: F401
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -83,12 +86,18 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--bands", default=",".join(map(str, DEFAULT_BANDS)),
                     help="초 단위 등시선 밴드, 쉼표 구분 (오름차순)")
+    ap.add_argument("--hospitals", type=Path, default=HOSPITALS)
+    ap.add_argument("--out-iso", type=Path, default=OUT_ISO)
+    ap.add_argument("--out-points", type=Path, default=OUT_PTS)
+    ap.add_argument("--expect-hospitals", type=int, default=None)
     args = ap.parse_args()
     bands = sorted(int(x) for x in args.bands.split(","))
 
     key = read_key()
-    doc = json.loads(HOSPITALS.read_text(encoding="utf-8"))
+    doc = json.loads(args.hospitals.read_text(encoding="utf-8"))
     hospitals = doc["hospitals"]
+    if args.expect_hospitals is not None and len(hospitals) != args.expect_hospitals:
+        raise SystemExit(f"병원 수 불일치: {len(hospitals)} != {args.expect_hospitals}")
     locations = [[h["lon"], h["lat"]] for h in hospitals]
     print(f"병원 {len(hospitals)}개, 밴드(분): {[b//60 for b in bands]}")
 
@@ -144,25 +153,33 @@ def main():
         "type": "FeatureCollection",
         "meta": {"bands_sec": bands, "bands_min": [b // 60 for b in bands],
                  "source": "OpenRouteService driving-car isochrones",
-                 "hospitals": len(hospitals)},
+                 "hospitals": len(hospitals),
+                 "hospital_source": doc.get("meta", {}).get("source"),
+                 "hospital_period": doc.get("meta", {}).get("period")},
         "features": features,
     }
-    OUT_ISO.write_text(json.dumps(fc, ensure_ascii=False), encoding="utf-8")
-    print(f"저장: {OUT_ISO}  (features={len(features)})")
+    args.out_iso.write_text(json.dumps(fc, ensure_ascii=False), encoding="utf-8")
+    print(f"저장: {args.out_iso}  (features={len(features)})")
 
     # 병원 포인트 GeoJSON
     pts = {
         "type": "FeatureCollection",
+        "meta": {"source": doc.get("meta", {}).get("source"),
+                 "source_url": doc.get("meta", {}).get("source_url"),
+                 "period": doc.get("meta", {}).get("period"),
+                 "count": len(hospitals)},
         "features": [{
             "type": "Feature",
             "properties": {"id": h["id"], "name": h["name"], "region": h["region"], "sido": h["sido"]},
             "geometry": {"type": "Point", "coordinates": [h["lon"], h["lat"]]},
         } for h in hospitals],
     }
-    OUT_PTS.write_text(json.dumps(pts, ensure_ascii=False), encoding="utf-8")
-    print(f"저장: {OUT_PTS}  (points={len(hospitals)})")
+    args.out_points.write_text(json.dumps(pts, ensure_ascii=False), encoding="utf-8")
+    print(f"저장: {args.out_points}  (points={len(hospitals)})")
     print("완료.")
 
 
 if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     main()

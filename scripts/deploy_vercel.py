@@ -10,7 +10,7 @@ import _env  # noqa: F401  (.env 자동 로드 side-effect)
 
 TOKEN = os.environ["VERCEL_TOKEN"]
 TEAM = os.environ.get("VERCEL_TEAM", "").strip()
-NAME = os.environ.get("VERCEL_PROJECT", "korea-medical-access").strip()
+NAME = os.environ.get("VERCEL_PROJECT", "korea-medical-analysis").strip()
 DIST = Path(__file__).resolve().parent.parent / "dist"
 
 H = {"Authorization": "Bearer " + TOKEN}

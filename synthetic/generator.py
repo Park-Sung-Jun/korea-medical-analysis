@@ -244,7 +244,8 @@ def available_years():
     for tid in _CORE_TABLES:
         path = os.path.join(DATA_DIR, f"DT_35007_{tid}.csv")
         if not os.path.exists(path):
-            continue
+            _AVAIL_YEARS = []
+            return _AVAIL_YEARS
         with open(path, encoding="utf-8-sig", newline="") as f:
             ys = {r.get("PRD_DE", "") for r in csv.DictReader(f) if r.get("PRD_DE")}
         common = ys if common is None else (common & ys)

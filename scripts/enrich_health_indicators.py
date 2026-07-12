@@ -13,13 +13,16 @@
 
 usage: python scripts/enrich_health_indicators.py
 """
+import argparse
 import csv
 import json
+import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE.parent / "data"
 GEO = DATA / "sigungu_bivariate.geojson"
+STATS = DATA / "health_indicator_stats.json"
 
 SIDO_SHORT = {"서울", "부산", "대구", "인천", "광주", "대전", "울산", "세종",
               "경기", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주"}
@@ -59,9 +62,9 @@ def norm(s):
     return (s or "").replace(" ", "")
 
 
-def parse_counts(spec):
+def parse_counts(spec, data_dir=DATA):
     """returns idx: (sido_short, normname) -> {'n':numer_count, 'd':denom_count}."""
-    f = DATA / (spec["table"] + ".csv")
+    f = data_dir / (spec["table"] + ".csv")
     fp = open(f, encoding="utf-8-sig", newline="")
     rd = csv.DictReader(fp)
     sido_codes = {}          # code -> sido_short (시도 행)
@@ -163,14 +166,14 @@ def sido_short_of(gsido):
     return None
 
 
-def main():
-    geo = json.loads(GEO.read_text(encoding="utf-8"))
+def main(geo_path=GEO, stats_path=STATS, data_dir=DATA):
+    geo = json.loads(geo_path.read_text(encoding="utf-8"))
     feats = geo["features"]
     meta = geo.setdefault("meta", {})
     stats = {"year": 2024, "indicators": {}}
 
     for spec in INDICATORS:
-        idx, sido_totals = parse_counts(spec)
+        idx, sido_totals = parse_counts(spec, data_dir)
         field = spec["field"]
         nat_n = nat_d = 0
         matched = 0
@@ -204,17 +207,31 @@ def main():
             "range": [tert["min"], tert["max"]] if tert else None, "tertiles": tert,
             "corr": {"access_min": r_acc, "aging_index": r_age, "checkup_rate": r_chk},
         }
-        print(f"[{field}] {spec['label']}  매칭 {matched}/250  미매칭 {len(unmatched)}  "
+        print(f"[{field}] {spec['label']}  매칭 {matched}/{len(feats)}  미매칭 {len(unmatched)}  "
               f"전국 {stats['indicators'][field]['national_rate']}%  범위 {tert['min']}~{tert['max']}%")
         print(f"    상관: 접근성 r={r_acc}  고령화 r={r_age}  수검률 r={r_chk}")
         if unmatched:
             print("    미매칭:", ", ".join(unmatched[:12]))
 
-    (DATA / "health_indicator_stats.json").write_text(
+    stats_path.write_text(
         json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
-    GEO.write_text(json.dumps(geo, ensure_ascii=False), encoding="utf-8")
-    print("저장: geojson + data/health_indicator_stats.json")
+    geo_path.write_text(json.dumps(geo, ensure_ascii=False), encoding="utf-8")
+    print(f"저장: {geo_path} + {stats_path}")
+    total_unmatched = sum(len(v["unmatched"]) for v in stats["indicators"].values())
+    if total_unmatched:
+        raise SystemExit(f"건강지표 시군구 미매칭 합계 {total_unmatched}건 — 출력 승격 금지")
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="시군구 건강지표 병합")
+    parser.add_argument("--geojson", type=Path, default=GEO)
+    parser.add_argument("--stats", type=Path, default=STATS)
+    parser.add_argument("--data-dir", type=Path, default=DATA)
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
-    main()
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    args = parse_args()
+    main(args.geojson, args.stats, args.data_dir)

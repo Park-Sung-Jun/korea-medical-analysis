@@ -23,7 +23,7 @@
         "min": 50.2
       },
       {
-        "sido": "강원도",
+        "sido": "강원특별자치도",
         "name": "고성군",
         "min": 49.8
       },
@@ -43,7 +43,7 @@
         "min": 44.8
       },
       {
-        "sido": "강원도",
+        "sido": "강원특별자치도",
         "name": "홍천군",
         "min": 40.8
       },
@@ -53,7 +53,7 @@
         "min": 37.1
       },
       {
-        "sido": "강원도",
+        "sido": "강원특별자치도",
         "name": "인제군",
         "min": 36.8
       },
@@ -63,7 +63,7 @@
         "min": 36.2
       },
       {
-        "sido": "강원도",
+        "sido": "강원특별자치도",
         "name": "양양군",
         "min": 35.6
       },
@@ -83,7 +83,7 @@
         "min": 32.4
       },
       {
-        "sido": "강원도",
+        "sido": "강원특별자치도",
         "name": "삼척시",
         "min": 32.3
       },
@@ -111,9 +111,9 @@
     "over60_n": 10
   },
   "corr": {
-    "er_vs_tertiary": 0.378,
-    "er_center_vs_tertiary": 0.738,
-    "er_vs_aging": 0.303,
-    "er_center_vs_aging": 0.434
+    "er_vs_tertiary": 0.411,
+    "er_center_vs_tertiary": 0.725,
+    "er_vs_aging": 0.305,
+    "er_center_vs_aging": 0.435
   }
 }
