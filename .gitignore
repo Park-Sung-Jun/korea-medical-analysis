@@ -28,6 +28,8 @@ synthetic/DEPLOY.md
 synthetic/__pycache__/
 
 # 대용량/파생 데이터 (정적 사이트에 불필요, 재생성 가능)
+data/*.next.*
+data/population.json
 data/pop_202512.json
 data/sigungu.geojson
 data/sigungu_try1.json

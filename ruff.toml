@@ -1,4 +1,4 @@
-# isochrone_map 린트 설정.
+# korea-medical-analysis 린트 설정.
 # 데이터 스크립트는 의도적으로 압축적(한 줄 다중 문장/람다) 스타일을 쓴다 → 해당 스타일 코드는 무시.
 # 단 pyflakes(F: 미사용 import/변수, 빈 f-string 등 실질 버그성)는 유지한다.
 target-version = "py311"

@@ -3,7 +3,7 @@
   "indicators": {
     "disease_rate": {
       "label": "유질환자율(%)",
-      "matched": 250,
+      "matched": 252,
       "unmatched": [],
       "national_rate": 28.9,
       "range": [
@@ -17,14 +17,14 @@
         "max": 48.6
       },
       "corr": {
-        "access_min": 0.373,
-        "aging_index": 0.865,
+        "access_min": 0.637,
+        "aging_index": 0.863,
         "checkup_rate": -0.574
       }
     },
     "metabolic_rate": {
       "label": "대사증후군 위험군 비율(%)",
-      "matched": 250,
+      "matched": 252,
       "unmatched": [],
       "national_rate": 23.9,
       "range": [
@@ -32,20 +32,20 @@
         39.0
       ],
       "tertiles": {
-        "q1": 23.6,
+        "q1": 23.7,
         "q2": 27.9,
         "min": 17.9,
         "max": 39.0
       },
       "corr": {
-        "access_min": 0.41,
-        "aging_index": 0.755,
+        "access_min": 0.648,
+        "aging_index": 0.753,
         "checkup_rate": -0.526
       }
     },
     "cancer_rate": {
       "label": "암검진 수검률(%)",
-      "matched": 250,
+      "matched": 252,
       "unmatched": [],
       "national_rate": 60.2,
       "range": [
@@ -59,8 +59,8 @@
         "max": 68.2
       },
       "corr": {
-        "access_min": -0.256,
-        "aging_index": -0.464,
+        "access_min": -0.178,
+        "aging_index": -0.463,
         "checkup_rate": 0.732
       }
     }

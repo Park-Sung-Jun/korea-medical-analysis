@@ -13,14 +13,17 @@
 
 usage: python scripts/analyze_checkup.py
 """
+import argparse
 import csv
 import json
+import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE.parent / "data"
 SRC = DATA / "kosis_general_checkup_sigungu.csv"
 GEO = DATA / "sigungu_bivariate.geojson"
+STATS = DATA / "checkup_stats.json"
 YEAR_COL = "2024 년"
 
 SIDO_SHORT = {"서울", "부산", "대구", "인천", "광주", "대전", "울산", "세종",
@@ -47,12 +50,12 @@ def num(x):
         return None
 
 
-def parse_checkup():
+def parse_checkup(src=SRC):
     """returns dict: (sido_short, name) -> {'target':float,'done':float}, + 시도총계 dict."""
     out = {}
     sido_totals = {}  # sido_short -> {'target','done'} (세종 등 무자식 처리용)
     cur_sido = None
-    with open(SRC, encoding="cp949") as fp:
+    with open(src, encoding="cp949") as fp:
         rd = csv.DictReader(fp)
         for row in rd:
             region = (row.get("시군구별") or "").strip().strip('"')
@@ -90,9 +93,9 @@ def pearson(pairs):
     return (round(sxy / (sxx * syy), 3) if sxx and syy else None), n
 
 
-def main():
-    checkup, sido_totals = parse_checkup()
-    geo = json.loads(GEO.read_text(encoding="utf-8"))
+def main(src=SRC, geo_path=GEO, stats_path=STATS):
+    checkup, sido_totals = parse_checkup(src)
+    geo = json.loads(geo_path.read_text(encoding="utf-8"))
     feats = geo["features"]
 
     # 공백 정규화 인덱스 (창원시 의창구 ↔ 창원시의창구)
@@ -136,6 +139,8 @@ def main():
             rec = sido_totals.get("세종")
         if not valid(rec):
             unmatched_geo.append(f"{gsido} {gname}")
+            p["checkup_target"] = None
+            p["checkup_done"] = None
             p["checkup_rate"] = None
             continue
         rate = round(rec["done"] / rec["target"] * 100, 1)
@@ -230,8 +235,8 @@ def main():
         "typology": typology,
         "lowest12": low_rows,
     }
-    (DATA / "checkup_stats.json").write_text(json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
-    GEO.write_text(json.dumps(geo, ensure_ascii=False), encoding="utf-8")
+    stats_path.write_text(json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
+    geo_path.write_text(json.dumps(geo, ensure_ascii=False), encoding="utf-8")
 
     print(f"매칭: {matched}/{len(feats)}  미매칭 {len(unmatched_geo)}건")
     if unmatched_geo:
@@ -245,7 +250,20 @@ def main():
     print(f"[유형화] 도시형(접근좋은데 저수검) {typology['urban_n']}곳 평균 {typology['urban_mean_rate']}%(고령화 {typology['urban_mean_aging']})"
           f"  vs  농촌형 {typology['rural_n']}곳 평균 {typology['rural_mean_rate']}%(고령화 {typology['rural_mean_aging']})")
     print("  도시형 예:", ", ".join(p["name"] for p in typology["urban_ex"]))
+    if unmatched_geo:
+        raise SystemExit(f"건강검진 시군구 미매칭 {len(unmatched_geo)}건 — 출력 승격 금지")
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="시군구 건강검진 수검률 분석")
+    parser.add_argument("--source", type=Path, default=SRC)
+    parser.add_argument("--geojson", type=Path, default=GEO)
+    parser.add_argument("--stats", type=Path, default=STATS)
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
-    main()
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    args = parse_args()
+    main(args.source, args.geojson, args.stats)

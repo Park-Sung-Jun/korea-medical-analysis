@@ -12,17 +12,31 @@ usage:
   $env:TMAP_APP_KEY="..."; python scripts/cross_validate_tmap.py            # 대표 표본(도시12+농촌8)
   python scripts/cross_validate_tmap.py --full                              # 전체 250
 """
-import argparse, csv, json, os, time
+import argparse, csv, json, os, sys, time
 from pathlib import Path
 import requests
 from shapely.geometry import shape
-import _env  # noqa: F401  (.env 자동 로드 side-effect)
+try:
+    from . import _env  # noqa: F401  (.env 자동 로드 side-effect)
+except ImportError:  # `python scripts/cross_validate_tmap.py` 직접 실행
+    import _env  # noqa: F401
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE.parent / "data"
 ORS_MATRIX = "https://api.openrouteservice.org/v2/matrix/driving-car"
 TMAP_URL = "https://apis.openapi.sk.com/tmap/routes?version=1&format=json"
 SLEEP = 0.4
+
+
+def ratio_values(rows):
+    values = []
+    for row in rows:
+        try:
+            value = float(row.get("ratio"))
+        except (TypeError, ValueError):
+            continue
+        values.append(value)
+    return sorted(values)
 
 
 def ors_key():
@@ -92,22 +106,39 @@ def main():
     ap.add_argument("--slot", default=None,
                     help="시간슬롯 라벨(예: weekday_am, weekday_pm, weekday_eve, weekend). "
                          "지정 시 data/tmap_slots/<slot>.csv 로 저장 — 다시간대 수집용.")
+    ap.add_argument("--codes", default="", help="쉼표로 구분한 선택 시군구 코드")
+    ap.add_argument("--biv", type=Path, default=DATA / "sigungu_bivariate.geojson")
+    ap.add_argument("--hospitals", type=Path, default=DATA / "hospitals.json")
+    ap.add_argument("--out", type=Path, default=None, help="출력 CSV 경로")
+    ap.add_argument("--merge-from", type=Path, default=None,
+                    help="기존 전수 CSV를 유효 코드만 보존하고 이번 결과로 갱신")
     args = ap.parse_args()
 
     okey, tkey = ors_key(), tmap_key()
-    hosp = json.loads((DATA / "hospitals.json").read_text(encoding="utf-8"))["hospitals"]
+    hosp = json.loads(args.hospitals.read_text(encoding="utf-8"))["hospitals"]
     dests = [[h["lon"], h["lat"]] for h in hosp]
-    biv = json.loads((DATA / "sigungu_bivariate.geojson").read_text(encoding="utf-8"))
+    biv = json.loads(args.biv.read_text(encoding="utf-8"))
     feats = [f for f in biv["features"]]
     props = [f["properties"] for f in feats]
 
-    targets = feats if args.full else None
-    if not args.full:
+    requested_codes = {code.strip() for code in args.codes.split(",") if code.strip()}
+    if requested_codes and args.out is None:
+        raise SystemExit("--codes 사용 시 기존 CSV 보호를 위해 --out 경로가 필요합니다.")
+    if requested_codes:
+        targets = [f for f in feats if str(f["properties"].get("code", "")) in requested_codes]
+        found_codes = {str(f["properties"].get("code", "")) for f in targets}
+        missing = sorted(requested_codes - found_codes)
+        if missing:
+            raise SystemExit(f"요청 코드가 GeoJSON에 없습니다: {', '.join(missing)}")
+    elif args.full:
+        targets = feats
+    else:
         chosen = pick_sample(props)
         codes = {p["code"] for p in chosen}
         targets = [f for f in feats if f["properties"].get("code") in codes]
 
-    print(f"교차검증 대상: {len(targets)}개 시군구 ({'전체' if args.full else '표본'})")
+    scope = "선택" if requested_codes else ("전체" if args.full else "표본")
+    print(f"교차검증 대상: {len(targets)}개 시군구 ({scope})")
     rows = []
     for i, f in enumerate(targets, 1):
         p = f["properties"]
@@ -133,29 +164,51 @@ def main():
               f"ORS {ors_sec/60:.1f}분 → TMAP {tmap_sec/60:.1f}분 (×{ratio:.2f}) [{h['name']}]")
         time.sleep(SLEEP)
 
-    if args.slot:
+    if args.out is not None:
+        out = args.out
+    elif args.slot:
         slot_dir = DATA / "tmap_slots"
         slot_dir.mkdir(exist_ok=True)
         out = slot_dir / f"{args.slot}.csv"
     else:
         out = DATA / ("tmap_xcheck_full.csv" if args.full else "tmap_xcheck_sample.csv")
+    if len(rows) != len(targets):
+        raise SystemExit(f"TMAP/ORS 결과 불완전: {len(rows)}/{len(targets)} — 출력 승격 금지")
+    if args.merge_from is not None:
+        merged = {}
+        valid_codes = {str(f["properties"].get("code", "")) for f in feats}
+        with args.merge_from.open(encoding="utf-8-sig", newline="") as fp:
+            for row in csv.DictReader(fp):
+                code = str(row.get("code", ""))
+                if code in merged:
+                    raise SystemExit(f"기존 TMAP CSV 중복 코드: {code}")
+                if code in valid_codes:
+                    merged[code] = row
+        merged.update({str(row["code"]): row for row in rows})
+        missing = sorted(valid_codes - set(merged))
+        if missing:
+            raise SystemExit(f"병합 TMAP CSV 미수록 코드 {len(missing)}개: {', '.join(missing[:10])}")
+        rows = [merged[code] for code in sorted(merged)]
     if rows:
         with out.open("w", encoding="utf-8-sig", newline="") as fp:
             w = csv.DictWriter(fp, fieldnames=list(rows[0].keys()))
             w.writeheader(); w.writerows(rows)
-    ratios = sorted(r["ratio"] for r in rows if r["ratio"])
+    ratios = ratio_values(rows)
     if ratios:
         med = ratios[len(ratios) // 2]
         mean = sum(ratios) / len(ratios)
-        big = [r for r in rows if r["ratio"] and r["ratio"] >= 1.5]
+        big = [r for r in rows
+               if ratio_values([r]) and ratio_values([r])[0] >= 1.5]
         print(f"\n저장: {out}  (n={len(rows)})")
         print(f"ratio(TMAP/ORS)  중앙값 {med:.2f}  평균 {mean:.2f}  최대 {ratios[-1]:.2f}")
         print(f"교통으로 1.5배 이상 늘어난 곳: {len(big)}개")
-        for r in sorted(big, key=lambda x: -x["ratio"])[:8]:
+        for r in sorted(big, key=lambda x: -ratio_values([x])[0])[:8]:
             print(f"  {r['sido']} {r['name']}: {r['ors_min']}→{r['tmap_min']}분 ×{r['ratio']}")
         print("\n해석: ratio가 1보다 클수록 ORS가 시간을 과소추정(=등시선 과대). "
               "도시·정체구간에서 클 것으로 예상.")
 
 
 if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     main()

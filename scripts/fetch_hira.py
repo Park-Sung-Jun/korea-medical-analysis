@@ -1,6 +1,6 @@
 """
 건강보험심사평가원(HIRA) 병원정보서비스로 전국 병원을 수집해
-(1) 종별(clCdNm) '상급종합병원' 명단을 현재 수작업 data/hospitals.json(48개)과 교차검증하고,
+(1) 종별(clCdNm) '상급종합병원' 명단을 공식 기준 data/hospitals.json과 교차검증하고,
 (2) 종별 '상급종합병원'·'종합병원' 개수를 시군구코드(sgguCd) 기준으로 집계해
     data/sigungu_bivariate.geojson 의 각 feature properties에
     hosp_sup_cnt(상급종합)·hosp_gen_cnt(종합)로 in-place 병합한다.
@@ -13,7 +13,7 @@ API: apis.data.go.kr/B551182/hospInfoServicev2/getHospBasisList
 주의:
   - h3_tag/scripts/08_load_hospitals.py 는 clCd를 '진료과목'으로 잘못 매핑한다.
     그 버그를 따라하지 말고, 반드시 clCdNm(종별명)으로 종별을 판별한다.
-  - 절대 shared_data 의 DuckDB를 건드리지 않는다. 출력은 isochrone_map/data 안에만.
+  - 절대 shared_data 의 DuckDB를 건드리지 않는다. 출력은 korea-medical-analysis/data 안에만.
 
 키 우선순위:
   1) 환경변수 DATAGOKR_API_KEY
@@ -37,10 +37,10 @@ import _env  # noqa: F401  (.env 자동 로드 side-effect)
 
 # ── 경로 상수 ────────────────────────────────────────────────────────
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parent                       # isochrone_map/
+ROOT = HERE.parent                       # korea-medical-analysis/
 DATA = ROOT / "data"
-HOSPITALS_JSON = DATA / "hospitals.json"          # 수작업 상급종합 48개 명단
-HOSP_POINTS_GEOJSON = DATA / "hospitals.geojson"  # 상급종합 48개 포인트(좌표)
+HOSPITALS_JSON = DATA / "hospitals.json"          # 공식 상급종합 명단
+HOSP_POINTS_GEOJSON = DATA / "hospitals.geojson"  # 공식 상급종합 포인트(좌표)
 BIVARIATE_GEOJSON = DATA / "sigungu_bivariate.geojson"  # in-place 병합 대상
 GEN_OUT_CSV = DATA / "hira_general_hospitals.csv"  # 종합병원 목록(공간조인 결과) 저장
 
@@ -251,13 +251,14 @@ def _build_locator(features):
     return geoms
 
 
-def aggregate_and_merge(api_items, geojson_path: Path, hosp_points_path: Path):
+def aggregate_and_merge(api_items, geojson_path: Path, hosp_points_path: Path,
+                        gen_out_csv: Path = GEN_OUT_CSV):
     """
     HIRA sgguCd 는 행정표준코드가 아닌 자체코드(110001 등)라 geojson 코드와 매칭되지 않는다.
     그래서 좌표(XPos/YPos) 기반 공간조인(point-in-polygon)으로 시군구에 배정한다.
       - 종합병원(clCdNm='종합병원', 상급종합 포함): API 좌표로 집계 -> hosp_gen_cnt
       - 상급종합병원: HIRA가 별도 라벨을 주지 않으므로(상급종합도 clCdNm='종합병원'),
-        권위 명단인 수작업 48개(hospitals.geojson) 좌표로 집계 -> hosp_sup_cnt
+        권위 명단인 공식 병원 포인트(hospitals.geojson) 좌표로 집계 -> hosp_sup_cnt
     """
     import csv as _csv
     from shapely.geometry import Point
@@ -308,10 +309,12 @@ def aggregate_and_merge(api_items, geojson_path: Path, hosp_points_path: Path):
             "sigungu_code": pr.get("code", ""), "sigungu_name": pr.get("name", ""),
         })
 
-    # (b) 상급종합: 수작업 48개 좌표 공간조인
+    # (b) 상급종합: 공식 병원 좌표 공간조인
     sup_miss = 0
+    hosp_point_meta = {}
     if hosp_points_path.exists():
         hp = json.loads(hosp_points_path.read_text(encoding="utf-8"))
+        hosp_point_meta = hp.get("meta", {})
         for f in hp.get("features", []):
             try:
                 lng, lat = f["geometry"]["coordinates"][:2]
@@ -332,8 +335,9 @@ def aggregate_and_merge(api_items, geojson_path: Path, hosp_points_path: Path):
         pr["has_general_hosp"] = bool(gen[i] > 0)   # 2차의료 접근 보조 플래그
 
     meta = fc.setdefault("meta", {})
-    meta["hosp_source"] = "HIRA hospInfoServicev2/getHospBasisList (좌표 공간조인, clCdNm 기준)"
-    meta["hosp_fields"] = ("hosp_sup_cnt=상급종합병원(보건복지부 48개), "
+    meta["hosp_source"] = "HIRA 종합병원 + 보건복지부 제5기 상급종합병원 (좌표 공간조인)"
+    meta["hosp_period"] = hosp_point_meta.get("period")
+    meta["hosp_fields"] = (f"hosp_sup_cnt=상급종합병원(보건복지부 공식 {sum(sup)}개), "
                            "hosp_gen_cnt=종합병원(상급 포함, clCdNm='종합병원'), "
                            "has_general_hosp=시군구내 종합병원 유무")
 
@@ -345,17 +349,50 @@ def aggregate_and_merge(api_items, geojson_path: Path, hosp_points_path: Path):
     print(f"  종합병원 보유 시군구: {len(feats) - gen0} / {len(feats)}  |  0개(2차 의료 사각): {gen0}")
 
     if gen_rows:
-        with GEN_OUT_CSV.open("w", encoding="utf-8-sig", newline="") as fp:
+        with gen_out_csv.open("w", encoding="utf-8-sig", newline="") as fp:
             w = _csv.DictWriter(fp, fieldnames=list(gen_rows[0].keys()))
             w.writeheader(); w.writerows(gen_rows)
-        print(f"  종합병원 목록 저장: {GEN_OUT_CSV} ({len(gen_rows)}행)")
+        print(f"  종합병원 목록 저장: {gen_out_csv} ({len(gen_rows)}행)")
+
+
+def load_cached_general_hospitals(cache_path: Path):
+    """이전 HIRA 수집 CSV의 원 좌표를 API item 형태로 되돌린다."""
+    import csv
+    rows = []
+    with cache_path.open(encoding="utf-8-sig", newline="") as fp:
+        for row in csv.DictReader(fp):
+            rows.append({
+                "yadmNm": row.get("name", ""),
+                "clCdNm": row.get("clCdNm", ""),
+                "addr": row.get("addr", ""),
+                "drTotCnt": row.get("drTotCnt", ""),
+                "XPos": row.get("lng", ""),
+                "YPos": row.get("lat", ""),
+            })
+    if not rows:
+        raise ValueError(f"HIRA 캐시가 비어 있습니다: {cache_path}")
+    return rows
 
 
 # ── 메인 ────────────────────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser(description="HIRA 병원정보 수집 → 교차검증 + 시군구 집계 병합")
     parser.add_argument("--dry-run", action="store_true", help="건수만 확인(병합/검증 미수행)")
+    parser.add_argument("--from-cache", type=Path, default=None,
+                        help="네트워크 재수집 없이 기존 종합병원 CSV 좌표를 새 경계에 재조인")
+    parser.add_argument("--geojson", type=Path, default=BIVARIATE_GEOJSON)
+    parser.add_argument("--hospital-points", type=Path, default=HOSP_POINTS_GEOJSON)
+    parser.add_argument("--output-csv", type=Path, default=GEN_OUT_CSV)
     args = parser.parse_args()
+
+    if args.from_cache is not None:
+        items = load_cached_general_hospitals(args.from_cache)
+        print(f"[CACHE] 종합병원 좌표 {len(items)}건 로드: {args.from_cache}")
+        if args.dry_run:
+            return 0
+        aggregate_and_merge(items, args.geojson, args.hospital_points, args.output_csv)
+        print("\n완료.")
+        return 0
 
     raw_key = resolve_api_key()
     if not raw_key:
@@ -397,10 +434,12 @@ def main():
         return 0
 
     cross_check_superior(items, HOSPITALS_JSON)       # (1)
-    aggregate_and_merge(items, BIVARIATE_GEOJSON, HOSP_POINTS_GEOJSON)  # (2) 좌표 공간조인
+    aggregate_and_merge(items, args.geojson, args.hospital_points, args.output_csv)  # (2) 좌표 공간조인
     print("\n완료.")
     return 0
 
 
 if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     sys.exit(main())
