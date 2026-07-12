@@ -1,7 +1,5 @@
-# node / playwright (개발 전용)
+# node / playwright (의존성 디렉터리만 제외; manifest는 CI 재현을 위해 추적)
 node_modules/
-package.json
-package-lock.json
 
 # 빌드 산출물
 dist/

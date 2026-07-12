@@ -1,5 +1,7 @@
 # 대한민국 의료 접근성 분석
 
+[![CI](https://github.com/Park-Sung-Jun/korea-medical-analysis/actions/workflows/ci.yml/badge.svg)](https://github.com/Park-Sung-Jun/korea-medical-analysis/actions/workflows/ci.yml)
+
 전국 의료취약지·응급의료 접근성·지역 건강지표를 함께 탐색하는 정적 데이터 리포트와 인터랙티브 지도입니다.
 
 - 프로젝트: `korea-medical-analysis`
