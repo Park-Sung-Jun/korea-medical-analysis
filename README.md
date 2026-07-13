@@ -7,6 +7,14 @@
 - 프로젝트: `korea-medical-analysis`
 - 운영 URL: `https://korea-medical-analysis.vercel.app/`
 
+## 운영·인수인계
+
+- 정본은 이 저장소의 `main` 브랜치이며, Vercel 운영 주소는 위 URL 하나만 사용합니다.
+- `main` 병합 후 최신 Production 배포만 유지하고 Preview·구 프로젝트명·플랫폼 자동 alias는 제거합니다.
+- 검증 기준: `python -m pytest -q`, `npm test`, `npm run qa:deployed`.
+- 다음 작업: 데이터 갱신 시 생성 스크립트와 출처 기준을 먼저 확인하고, 배포 후 운영 주소의 지도 뷰·검색·모바일 화면을 다시 검사합니다.
+- 주의: Netlify 배포 스크립트는 폐기되었습니다. Vercel Preview는 임시 alias를 다시 만들 수 있으므로 작업 종료 전에 배포·alias 목록을 재점검합니다.
+
 전국 제5기 상급종합병원(2024–2026) 공식 지정 **47개** 기준 등시선(isochrone) 지도.
 세 가지 뷰를 전환하며 본다. 참고: [vw-lab 지하철 등시선 지도](https://www.vw-lab.com/130).
 
