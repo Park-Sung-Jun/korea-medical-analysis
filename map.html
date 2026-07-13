@@ -459,7 +459,7 @@ function renderPyramid(code){
   const eld=i65>=0?reg.m.slice(i65).reduce((a,b)=>a+b,0)+reg.f.slice(i65).reduce((a,b)=>a+b,0):null;
   document.getElementById('py-title').textContent=reg.name+(eld!=null?` · 고령인구 ${eld.toLocaleString()}명`:'');
   const link=document.getElementById('py-link');
-  if(reg.pcode){link.style.display='inline-block';link.href='https://poppyramid.vercel.app/?code='+encodeURIComponent(reg.pcode);}
+  if(reg.pcode){link.style.display='inline-block';link.href='https://pop-pyramid.vercel.app/?code='+encodeURIComponent(reg.pcode);}
   else link.style.display='none';
   if(!pyChart)pyChart=echarts.init(document.getElementById('py-chart'));
   const bands=PYR.bands, male=reg.m.map(v=>-v), female=reg.f;

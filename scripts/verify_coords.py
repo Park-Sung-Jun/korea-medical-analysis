@@ -36,7 +36,7 @@ def geocode(query):
     })
     req = urllib.request.Request(
         f"{NOMINATIM}?{params}",
-        headers={"User-Agent": "isochrone-map-hospital-verify/1.0 (personal research)"},
+        headers={"User-Agent": "korea-medical-analysis-hospital-verify/1.0 (personal research)"},
     )
     with urllib.request.urlopen(req, timeout=30) as r:
         rows = json.load(r)
